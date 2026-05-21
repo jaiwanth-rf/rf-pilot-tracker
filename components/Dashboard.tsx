@@ -15,6 +15,12 @@ const T = {
 
 const ampUrl = (id: string) => `https://app.amplitude.com/analytics/recruiterflow/project/204829/search/amplitude_id%3D${id}/activity`
 
+const fmtDate = (iso: string, withTime = false) => {
+  const d = new Date(iso)
+  const date = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+  return withTime ? date + ', ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : date
+}
+
 function Chip({ type='info', label, small }: any) {
   const m: any = { danger:{bg:T.R50,b:T.R75,fg:T.R400}, warn:{bg:T.Y50,b:'#fed7aa',fg:T.Y400}, green:{bg:T.G50,b:T.G75,fg:T.G400}, info:{bg:T.B50,b:T.B75,fg:T.B400}, purple:{bg:T.P50,b:T.P75,fg:T.P400}, neutral:{bg:T.N100,b:T.N200,fg:T.N600} }
   const c = m[type] || m.info
@@ -216,6 +222,7 @@ export default function Dashboard({ session }: any) {
   const [adding, setAdding] = useState(false)
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<any>(null)
+  const [refreshing, setRefreshing] = useState<Record<string, boolean>>({})
 
   useEffect(() => { loadProfile(); loadAccounts() }, [])
 
@@ -227,7 +234,13 @@ export default function Dashboard({ session }: any) {
   async function loadAccounts() {
     setLoading(true)
     const { data } = await supabase.from('tracked_domains').select('*').eq('user_id', session.user.id).order('added_at', { ascending: false })
-    if (data) setAccounts(data.map(d => ({ ...d, ...(d.cached_data || {}), status: d.cached_data ? 'ready' : 'empty' })))
+    if (data) setAccounts(data.map(d => ({
+      ...(d.cached_data || {}),
+      domain: d.domain,
+      status: d.cached_data ? 'ready' : 'empty',
+      addedAt: fmtDate(d.added_at),
+      lastRefreshed: d.last_refreshed ? fmtDate(d.last_refreshed, true) : null,
+    })))
     setLoading(false)
   }
 
@@ -243,7 +256,7 @@ export default function Dashboard({ session }: any) {
       const res = await fetch('/api/amplitude', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ domain }) })
       const data = await res.json()
       if (!res.ok) { setAccounts(prev => prev.map(a => a.domain===domain ? {...a, status:'error', error:data.error} : a)); return }
-      const accountData = { ...data, addedAt, status:'ready' }
+      const accountData = { ...data, addedAt, lastRefreshed: null, status:'ready' }
       await supabase.from('tracked_domains').insert({ user_id:session.user.id, domain, cached_data:data })
       setAccounts(prev => prev.map(a => a.domain===domain ? accountData : a))
     } catch (err:any) {
@@ -255,6 +268,21 @@ export default function Dashboard({ session }: any) {
     await supabase.from('tracked_domains').delete().eq('user_id', session.user.id).eq('domain', domain)
     setAccounts(prev => prev.filter(a => a.domain !== domain))
     if (selected?.domain === domain) setSelected(null)
+  }
+
+  async function refreshDomain(domain: string) {
+    setRefreshing(prev => ({ ...prev, [domain]: true }))
+    try {
+      const res = await fetch('/api/amplitude', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ domain }) })
+      const data = await res.json()
+      if (res.ok) {
+        const now = new Date().toISOString()
+        await supabase.from('tracked_domains').update({ cached_data: data, last_refreshed: now }).eq('user_id', session.user.id).eq('domain', domain)
+        const lastRefreshed = fmtDate(now, true)
+        setAccounts(prev => prev.map(a => a.domain === domain ? { ...a, ...data, lastRefreshed, status: 'ready' } : a))
+      }
+    } catch {}
+    setRefreshing(prev => ({ ...prev, [domain]: false }))
   }
 
   const signOut = () => supabase.auth.signOut()
@@ -319,7 +347,7 @@ export default function Dashboard({ session }: any) {
             <div style={{width:44,height:44,borderRadius:10,background:'#e8edf5',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:'#1a3260',flexShrink:0}}>{a.domain.slice(0,2).toUpperCase()}</div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:15,fontWeight:600,color:'#0f1f3d'}}>{a.domain}</div>
-              <div style={{fontSize:11,color:'#9ca3af'}}>Added {a.addedAt}</div>
+              <div style={{fontSize:11,color:'#9ca3af'}}>Added {a.addedAt}{a.lastRefreshed ? ` · ↻ ${a.lastRefreshed}` : ''}</div>
             </div>
             <div style={{display:'flex',gap:8,alignItems:'center'}}>
               {a.status==='loading' && <Chip type="neutral" label="Finding users…"/>}
@@ -330,6 +358,7 @@ export default function Dashboard({ session }: any) {
                   <div style={{fontSize:11,color:'#9ca3af'}}>Last seen {a.daysSince}d ago</div>
                 </div>
                 <Chip type={a.inactiveUsers>0?'warn':'green'} label={a.inactiveUsers>0?`${a.inactiveUsers} inactive`:'All active'}/>
+                <button onClick={() => refreshDomain(a.domain)} disabled={refreshing[a.domain]} title="Refresh Amplitude data" style={{background:'none',border:`1px solid ${T.N200}`,borderRadius:6,width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,cursor:'pointer',color:refreshing[a.domain]?T.N300:T.N500,flexShrink:0}}>{refreshing[a.domain] ? '…' : '↻'}</button>
                 <button onClick={() => setSelected(a)} style={{background:'#0f1f3d',border:'none',borderRadius:7,padding:'6px 14px',fontSize:12,fontWeight:600,color:'#fff',cursor:'pointer'}}>View →</button>
               </>}
             </div>
