@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 
 // ─── Color tokens (used by AccountDetail + utility components) ────────
@@ -26,6 +26,40 @@ const fmtDate = (iso: string, withTime = false) => {
   return withTime ? date + ', ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : date
 }
 
+// ─── Inline SVG icon components (no Font Awesome dependency) ─────────
+type IconProps = { size?: number; style?: React.CSSProperties }
+
+function ic(paths: React.ReactNode, { size = 14, style }: IconProps = {}) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
+      style={{ display:'inline-block', verticalAlign:'middle', flexShrink:0, ...style }}
+      aria-hidden="true">{paths}</svg>
+  )
+}
+
+function RefreshIcon(p: IconProps) { return ic(<><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 21H3v-5"/></>, p) }
+function SpinnerIcon({ size = 14, style }: IconProps = {}) { return ic(<path d="M21 12a9 9 0 1 1-6.219-8.56"/>, { size, style: { animation:'spin 0.8s linear infinite', ...style } }) }
+function ArrowRightIcon(p: IconProps) { return ic(<><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></>, p) }
+function XIcon(p: IconProps) { return ic(<><path d="M18 6 6 18"/><path d="M6 6l12 12"/></>, p) }
+function PlusIcon(p: IconProps) { return ic(<><path d="M12 5v14"/><path d="M5 12h14"/></>, p) }
+function SearchIcon(p: IconProps) { return ic(<><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></>, p) }
+function GlobeIcon(p: IconProps) { return ic(<><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>, p) }
+function DownloadIcon(p: IconProps) { return ic(<><path d="M12 3v13"/><path d="M8 12l4 4 4-4"/><path d="M3 21h18"/></>, p) }
+function WarningIcon(p: IconProps) { return ic(<><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>, p) }
+function CheckCircleIcon(p: IconProps) { return ic(<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></>, p) }
+function UsersIcon(p: IconProps) { return ic(<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>, p) }
+function BoltIcon(p: IconProps) { return ic(<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>, p) }
+function ClockIcon(p: IconProps) { return ic(<><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></>, p) }
+function RocketIcon(p: IconProps) { return ic(<><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></>, p) }
+function ChartLineIcon(p: IconProps) { return ic(<><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></>, p) }
+function EyeIcon(p: IconProps) { return ic(<><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></>, p) }
+function UserSlashIcon(p: IconProps) { return ic(<><path d="M13 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M2 2l20 20"/></>, p) }
+function UserClockIcon(p: IconProps) { return ic(<><path d="M15 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/><path d="M9 21v-2a4 4 0 0 1 .43-1.81"/><circle cx="20" cy="17" r="3"/><path d="M20 14.5v2.5l1.5 1"/></>, p) }
+function SnowflakeIcon(p: IconProps) { return ic(<><path d="M12 2v20M2 12h20"/><path d="M12 6l-2-2M12 6l2-2M12 18l-2 2M12 18l2 2M6 12l-2-2M6 12l-2 2M18 12l2-2M18 12l2 2"/></>, p) }
+function ClockRotateLeftIcon(p: IconProps) { return ic(<><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></>, p) }
+function UsersSlashIcon(p: IconProps) { return ic(<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M2 2l20 20"/></>, p) }
+
 // ─── List-view logic ──────────────────────────────────────────────────
 
 function classify(a: any): 'critical' | 'watch' | 'healthy' {
@@ -39,12 +73,12 @@ function buildReasons(a: any) {
   const churnedCount = a.inactiveUsers || 0
   // watchInactive = users between 3-14 days inactive (not in explicit API field)
   const watchInactive = Math.max(0, (a.totalUsers || 0) - (a.activeUsers || 0) - churnedCount)
-  const r: { icon: string; label: string; tone: 'critical' | 'watch' }[] = []
-  if (churnedCount > 0) r.push({ icon: 'fa-user-slash', label: `${churnedCount} churned`, tone: 'critical' })
-  else if (watchInactive > 0) r.push({ icon: 'fa-user-clock', label: `${watchInactive} inactive`, tone: 'watch' })
-  if (a.daysSince > 14) r.push({ icon: 'fa-snowflake', label: `Cold ${a.daysSince}d`, tone: 'critical' })
-  else if (a.daysSince > 7) r.push({ icon: 'fa-clock-rotate-left', label: `${a.daysSince}d since activity`, tone: 'watch' })
-  if (a.activeUsers === 0 && a.totalUsers > 0) r.push({ icon: 'fa-users-slash', label: 'Zero active users', tone: 'critical' })
+  const r: { icon: React.ReactNode; label: string; tone: 'critical' | 'watch' }[] = []
+  if (churnedCount > 0) r.push({ icon: <UserSlashIcon size={10}/>, label: `${churnedCount} churned`, tone: 'critical' })
+  else if (watchInactive > 0) r.push({ icon: <UserClockIcon size={10}/>, label: `${watchInactive} inactive`, tone: 'watch' })
+  if (a.daysSince > 14) r.push({ icon: <SnowflakeIcon size={10}/>, label: `Cold ${a.daysSince}d`, tone: 'critical' })
+  else if (a.daysSince > 7) r.push({ icon: <ClockRotateLeftIcon size={10}/>, label: `${a.daysSince}d since activity`, tone: 'watch' })
+  if (a.activeUsers === 0 && a.totalUsers > 0) r.push({ icon: <UsersSlashIcon size={10}/>, label: 'Zero active users', tone: 'critical' })
   return r
 }
 
@@ -260,7 +294,7 @@ function ModuleChip({ name, count }: { name: string; count?: number }) {
   )
 }
 
-function ReasonChip({ icon, label, tone = 'watch' }: { icon: string; label: string; tone?: 'critical' | 'watch' }) {
+function ReasonChip({ icon, label, tone = 'watch' }: { icon: React.ReactNode; label: string; tone?: 'critical' | 'watch' }) {
   const tones: Record<string, { bg: string; fg: string; bd: string }> = {
     critical: { bg:'#fff0f0', fg:'#c81e1e', bd:'#fdc5c5' },
     watch:    { bg:'#fef7e7', fg:'#a05c00', bd:'#f9c96a' },
@@ -273,7 +307,7 @@ function ReasonChip({ icon, label, tone = 'watch' }: { icon: string; label: stri
       borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600,
       whiteSpace:'nowrap',
     }}>
-      <i className={`fa-solid ${icon}`} style={{fontSize:10}}></i>
+      {icon}
       {label}
     </span>
   )
@@ -350,13 +384,13 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
               style={{...iconBtnStyle(refreshHover), opacity: refreshing ? 0.5 : 1}}
               aria-label="Refresh"
             >
-              <i className={`fa-solid ${refreshing ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}/>
+              {refreshing ? <SpinnerIcon size={13}/> : <RefreshIcon size={13}/>}
             </button>
             <button
               onClick={onView}
               style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, fontFamily:FONT}}
             >
-              View <i className="fa-solid fa-arrow-right" style={{fontSize:10}}/>
+              View <ArrowRightIcon size={10}/>
             </button>
             <button
               onClick={onRemove}
@@ -366,7 +400,7 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
               aria-label="Untrack"
               title="Stop tracking"
             >
-              <i className="fa-solid fa-xmark"/>
+              <XIcon size={13}/>
             </button>
           </div>
         </div>
@@ -479,18 +513,18 @@ function HealthyCard({ account: a, onView, onRefresh, onRemove, refreshing }: an
             <div style={{display:'flex', alignItems:'center', gap:7, marginTop:6, flexWrap:'wrap'}}>
               {(a.totalUsers > 0 && a.activeUsers === a.totalUsers) && (
                 <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#edfbf4', color:'#1a9e68', border:'1px solid #8fd9bb', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
-                  <i className="fa-solid fa-users" style={{fontSize:10}}/>
+                  <UsersIcon size={10}/>
                   All {a.activeUsers} users active
                 </span>
               )}
               {a.daysSince === 0 ? (
                 <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#edfbf4', color:'#1a9e68', border:'1px solid #8fd9bb', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
-                  <i className="fa-solid fa-bolt" style={{fontSize:10}}/>
+                  <BoltIcon size={10}/>
                   Active today
                 </span>
               ) : (
                 <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#f0fdf4', color:'#15803d', border:'1px solid #bbf7d0', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
-                  <i className="fa-solid fa-clock" style={{fontSize:10}}/>
+                  <ClockIcon size={10}/>
                   Active {a.daysSince}d ago
                 </span>
               )}
@@ -510,13 +544,13 @@ function HealthyCard({ account: a, onView, onRefresh, onRemove, refreshing }: an
               style={{...iconBtnStyle(refreshHover), opacity: refreshing ? 0.5 : 1}}
               aria-label="Refresh"
             >
-              <i className={`fa-solid ${refreshing ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}/>
+              {refreshing ? <SpinnerIcon size={13}/> : <RefreshIcon size={13}/>}
             </button>
             <button
               onClick={onView}
               style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, fontFamily:FONT}}
             >
-              View <i className="fa-solid fa-arrow-right" style={{fontSize:10}}/>
+              View <ArrowRightIcon size={10}/>
             </button>
             <button
               onClick={onRemove}
@@ -526,7 +560,7 @@ function HealthyCard({ account: a, onView, onRefresh, onRemove, refreshing }: an
               aria-label="Untrack"
               title="Stop tracking"
             >
-              <i className="fa-solid fa-xmark"/>
+              <XIcon size={13}/>
             </button>
           </div>
         </div>
@@ -600,16 +634,20 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       <div style={{position:'relative', maxWidth:480, margin:'0 auto'}}>
         {/* Tilted decorative tiles */}
         <div style={{display:'flex', justifyContent:'center', gap:8, marginBottom:24}}>
-          {(['#e3f0ff', '#f5f3ff', '#fef0d9'] as string[]).map((c, i) => (
+          {[
+            { bg:'#e3f0ff', color:'#1a6fd4', icon:<RocketIcon size={18}/> },
+            { bg:'#f5f3ff', color:'#6d28d9', icon:<ChartLineIcon size={18}/> },
+            { bg:'#fef0d9', color:'#a05c00', icon:<UsersIcon size={18}/> },
+          ].map(({ bg, color, icon }, i) => (
             <div key={i} style={{
-              width:48, height:48, borderRadius:10, background:c,
+              width:48, height:48, borderRadius:10, background:bg,
               border:'1px solid rgba(255,255,255,0.6)',
               boxShadow:'0 4px 12px rgba(15,31,61,0.06)',
               transform:`translateY(${i === 1 ? -6 : 0}px) rotate(${(i-1)*4}deg)`,
               display:'flex', alignItems:'center', justifyContent:'center',
-              color: ['#1a6fd4','#6d28d9','#a05c00'][i], fontWeight:800,
+              color, fontWeight:800,
             }}>
-              <i className={['fa-solid fa-rocket','fa-solid fa-chart-line','fa-solid fa-users'][i]}/>
+              {icon}
             </div>
           ))}
         </div>
@@ -624,7 +662,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           onClick={onAdd}
           style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:10, padding:'11px 22px', fontSize:14, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8, fontFamily:FONT}}
         >
-          <i className="fa-solid fa-plus" style={{fontSize:11}}/>
+          <PlusIcon size={11}/>
           Track a domain
         </button>
         <div style={{
@@ -633,13 +671,13 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           fontSize:12, color:'#6a6e71', textAlign:'left',
         }}>
           {[
-            { icon:'fa-bolt', t:'30-day refresh', b:'Active, inactive, churned — auto-classified.' },
-            { icon:'fa-eye', t:'Risk anchored', b:'At-risk pilots surface at the top, every time.' },
-            { icon:'fa-rocket', t:'Per-user drilldown', b:'See exactly which user went cold and when.' },
+            { icon:<BoltIcon size={11}/>, t:'30-day refresh', b:'Active, inactive, churned — auto-classified.' },
+            { icon:<EyeIcon size={11}/>, t:'Risk anchored', b:'At-risk pilots surface at the top, every time.' },
+            { icon:<RocketIcon size={11}/>, t:'Per-user drilldown', b:'See exactly which user went cold and when.' },
           ].map((f, i) => (
             <div key={i}>
               <div style={{display:'inline-flex', alignItems:'center', justifyContent:'center', width:26, height:26, borderRadius:6, background:'#edf6ff', color:'#1a6fd4', marginBottom:8}}>
-                <i className={`fa-solid ${f.icon}`} style={{fontSize:11}}/>
+                {f.icon}
               </div>
               <div style={{fontWeight:700, color:'#0f1f3d', marginBottom:2, fontSize:13}}>{f.t}</div>
               <div style={{lineHeight:1.4}}>{f.b}</div>
@@ -1008,7 +1046,7 @@ export default function Dashboard({ session }: any) {
           borderRadius:24, display:'flex', alignItems:'center', gap:10,
           padding:'0 8px 0 14px', color:'#6a6e71', fontSize:13,
         }}>
-          <i className="fa-solid fa-magnifying-glass" style={{fontSize:12, flexShrink:0}}/>
+          <SearchIcon size={12} style={{flexShrink:0}}/>
           <input
             type="text"
             placeholder="Search domains…"
@@ -1061,14 +1099,14 @@ export default function Dashboard({ session }: any) {
               disabled={filtered.length === 0}
               style={{...ghostBtnStyle, opacity: filtered.length === 0 ? 0.4 : 1, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer'}}
             >
-              <i className="fa-solid fa-arrow-down-to-line" style={{fontSize:11, marginRight:6}}/>
+              <DownloadIcon size={11} style={{marginRight:6}}/>
               Export
             </button>
             <button
               onClick={() => setAdding(a => !a)}
               style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', fontFamily:FONT}}
             >
-              <i className="fa-solid fa-plus" style={{fontSize:11, marginRight:8}}/>
+              <PlusIcon size={11} style={{marginRight:8}}/>
               Track domain
             </button>
           </div>
@@ -1078,7 +1116,7 @@ export default function Dashboard({ session }: any) {
         {adding && (
           <section style={{background:'#fff', border:'1.5px solid #a0ccfe', borderRadius:12, padding:'12px 14px 10px', boxShadow:'0 0 0 4px rgba(160,204,254,0.18)'}}>
             <div style={{display:'flex', alignItems:'center', gap:8, background:'#fafafa', borderRadius:8, padding:'4px 12px'}}>
-              <i className="fa-solid fa-globe" style={{color:'#6a6e71', fontSize:13, flexShrink:0}}/>
+              <GlobeIcon size={13} style={{color:'#6a6e71', flexShrink:0}}/>
               <input
                 value={input}
                 onChange={e => setInput(e.target.value)}
@@ -1129,7 +1167,7 @@ export default function Dashboard({ session }: any) {
                 <div style={{display:'flex', gap:8, alignItems:'center'}}>
                   {a.status === 'loading' && (
                     <span style={{fontSize:11, fontWeight:600, background:'#f0f1f3', color:'#6a6e71', padding:'3px 10px', borderRadius:20}}>
-                      <i className="fa-solid fa-spinner fa-spin" style={{marginRight:5}}/>Finding users…
+                      <SpinnerIcon size={11} style={{marginRight:5}}/>Finding users…
                     </span>
                   )}
                   {a.status === 'error' && (
@@ -1229,7 +1267,7 @@ export default function Dashboard({ session }: any) {
                       display:'flex', alignItems:'center', justifyContent:'center',
                       fontSize:15, flexShrink:0,
                     }}>
-                      <i className="fa-solid fa-triangle-exclamation"/>
+                      <WarningIcon size={18}/>
                     </span>
                     <div>
                       <h2 style={{margin:0, fontSize:16, fontWeight:800, color:'#1e1c18', letterSpacing:'-0.01em', lineHeight:1.2, display:'inline-flex', alignItems:'center', gap:10}}>
@@ -1272,7 +1310,7 @@ export default function Dashboard({ session }: any) {
                       display:'flex', alignItems:'center', justifyContent:'center',
                       fontSize:15, flexShrink:0,
                     }}>
-                      <i className="fa-solid fa-circle-check"/>
+                      <CheckCircleIcon size={18}/>
                     </span>
                     <div>
                       <h2 style={{margin:0, fontSize:16, fontWeight:800, color:'#1e1c18', letterSpacing:'-0.01em', lineHeight:1.2, display:'inline-flex', alignItems:'center', gap:10}}>
@@ -1317,7 +1355,7 @@ export default function Dashboard({ session }: any) {
             {/* NO-RESULTS (search filtered everything) */}
             {atRisk.length === 0 && healthy.length === 0 && (
               <div style={{background:'#fff', border:'1px dashed #dfe0e0', borderRadius:12, padding:'48px 24px', textAlign:'center'}}>
-                <i className="fa-solid fa-magnifying-glass" style={{fontSize:22, color:'#c8cdd3', display:'block', marginBottom:10}}/>
+                <SearchIcon size={22} style={{color:'#c8cdd3', display:'block', marginBottom:10}}/>
                 <div style={{fontSize:14, fontWeight:700, color:'#33393d'}}>Nothing matches</div>
                 <div style={{fontSize:12, color:'#6a6e71', marginTop:4}}>Try a different filter or search.</div>
               </div>
