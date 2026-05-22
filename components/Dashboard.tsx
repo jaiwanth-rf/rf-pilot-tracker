@@ -16,6 +16,75 @@ const T = {
 
 const FONT = "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
+// ─── Inline SVG icon components ──────────────────────────────────────
+type IconProps = { size?: number; style?: React.CSSProperties }
+function RefreshIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M14 2v3h-3M2 14v-3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M13.8 5.5A6 6 0 1 0 14 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function XIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function SpinnerIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,animation:'rfSpin 0.7s linear infinite',...style}}><circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="26" strokeDashoffset="8" strokeLinecap="round"/></svg>
+}
+function ChevronRightIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M5.5 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+function ArrowRightIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M2 8h12M9 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+function PlusIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function SearchIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M10 10l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function GlobeIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M2 8h12M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6" stroke="currentColor" strokeWidth="1.5"/></svg>
+}
+function DownloadIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M8 1v9M4.5 7L8 10.5 11.5 7M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+function WarningIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M8 1.5L14.5 13.5H1.5L8 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M8 6v3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="8" cy="11.5" r="0.6" fill="currentColor"/></svg>
+}
+function CheckCircleIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M5 8l2.5 2.5L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+function UsersIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><circle cx="5.5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1 14c0-2.5 2-4.5 4.5-4.5S10 11.5 10 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="11.5" cy="5" r="2" stroke="currentColor" strokeWidth="1.5"/><path d="M14 13.5c0-2-1.5-3.5-3-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function BoltIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M10 1.5L4.5 8.5H8L6 14.5L13.5 7H9.5L10 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/></svg>
+}
+function ClockIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M8 5v3.5l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+function RocketIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M8 1.5c-2.5 2.5-4 6-4 8l2.5 2.5c2 0 5.5-1.5 8-4C13 3 10 1 8 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M4.5 9.5c-1 .8-2.5 1-3 .8-.2-.5 0-2 .8-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="10" cy="6" r="1.2" stroke="currentColor" strokeWidth="1.5"/></svg>
+}
+function ChartLineIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M1.5 12.5L5.5 7.5L8.5 10L12 5L15 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M1.5 14.5h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function EyeIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/></svg>
+}
+function UserSlashIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M10 6.5A3 3 0 0 0 4 6c0 1.7.7 3.2 2 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M3 14c0-2 1.5-3.7 3.5-4.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M1.5 1.5l13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function UserClockIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><circle cx="5.5" cy="5" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 14c0-2.5 1.8-4.5 4-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="11.5" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M12 10v1.5l1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+function SnowflakeIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M8 1v14M1 8h14M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+function ClockRotateLeftIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><path d="M1.5 4.5V8h3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 8A6 6 0 1 0 3.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M8 5.5V8l2 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+function UsersSlashIcon({ size=16, style }: IconProps) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" style={{display:'inline-block',verticalAlign:'middle',flexShrink:0,...style}}><circle cx="5" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1 14c0-2.2 1.8-4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="11.5" cy="4.5" r="2" stroke="currentColor" strokeWidth="1.5"/><path d="M14.5 12.5c0-1.7-1.2-3-2.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M1.5 1.5l13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+}
+
 // ─── Shared helpers ───────────────────────────────────────────────────
 const ampUrl = (id: string) =>
   `https://app.amplitude.com/analytics/recruiterflow/project/204829/search/amplitude_id%3D${id}/activity`
@@ -39,12 +108,12 @@ function buildReasons(a: any) {
   const churnedCount = a.inactiveUsers || 0
   // watchInactive = users between 3-14 days inactive (not in explicit API field)
   const watchInactive = Math.max(0, (a.totalUsers || 0) - (a.activeUsers || 0) - churnedCount)
-  const r: { icon: string; label: string; tone: 'critical' | 'watch' }[] = []
-  if (churnedCount > 0) r.push({ icon: 'fa-user-slash', label: `${churnedCount} churned`, tone: 'critical' })
-  else if (watchInactive > 0) r.push({ icon: 'fa-user-clock', label: `${watchInactive} inactive`, tone: 'watch' })
-  if (a.daysSince > 14) r.push({ icon: 'fa-snowflake', label: `Cold ${a.daysSince}d`, tone: 'critical' })
-  else if (a.daysSince > 7) r.push({ icon: 'fa-clock-rotate-left', label: `${a.daysSince}d since activity`, tone: 'watch' })
-  if (a.activeUsers === 0 && a.totalUsers > 0) r.push({ icon: 'fa-users-slash', label: 'Zero active users', tone: 'critical' })
+  const r: { icon: React.ReactNode; label: string; tone: 'critical' | 'watch' }[] = []
+  if (churnedCount > 0) r.push({ icon: <UserSlashIcon size={10}/>, label: `${churnedCount} churned`, tone: 'critical' })
+  else if (watchInactive > 0) r.push({ icon: <UserClockIcon size={10}/>, label: `${watchInactive} inactive`, tone: 'watch' })
+  if (a.daysSince > 14) r.push({ icon: <SnowflakeIcon size={10}/>, label: `Cold ${a.daysSince}d`, tone: 'critical' })
+  else if (a.daysSince > 7) r.push({ icon: <ClockRotateLeftIcon size={10}/>, label: `${a.daysSince}d since activity`, tone: 'watch' })
+  if (a.activeUsers === 0 && a.totalUsers > 0) r.push({ icon: <UsersSlashIcon size={10}/>, label: 'Zero active users', tone: 'critical' })
   return r
 }
 
@@ -260,7 +329,7 @@ function ModuleChip({ name, count }: { name: string; count?: number }) {
   )
 }
 
-function ReasonChip({ icon, label, tone = 'watch' }: { icon: string; label: string; tone?: 'critical' | 'watch' }) {
+function ReasonChip({ icon, label, tone = 'watch' }: { icon: React.ReactNode; label: string; tone?: 'critical' | 'watch' }) {
   const tones: Record<string, { bg: string; fg: string; bd: string }> = {
     critical: { bg:'#fff0f0', fg:'#c81e1e', bd:'#fdc5c5' },
     watch:    { bg:'#fef7e7', fg:'#a05c00', bd:'#f9c96a' },
@@ -273,7 +342,7 @@ function ReasonChip({ icon, label, tone = 'watch' }: { icon: string; label: stri
       borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600,
       whiteSpace:'nowrap',
     }}>
-      <i className={`fa-solid ${icon}`} style={{fontSize:10}}></i>
+      {icon}
       {label}
     </span>
   )
@@ -350,13 +419,13 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
               style={{...iconBtnStyle(refreshHover), opacity: refreshing ? 0.5 : 1}}
               aria-label="Refresh"
             >
-              <i className={`fa-solid ${refreshing ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}/>
+              {refreshing ? <SpinnerIcon size={13}/> : <RefreshIcon size={13}/>}
             </button>
             <button
               onClick={onView}
               style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, fontFamily:FONT}}
             >
-              View <i className="fa-solid fa-arrow-right" style={{fontSize:10}}/>
+              View <ArrowRightIcon size={10}/>
             </button>
             <button
               onClick={onRemove}
@@ -366,7 +435,7 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
               aria-label="Untrack"
               title="Stop tracking"
             >
-              <i className="fa-solid fa-xmark"/>
+              <XIcon size={13}/>
             </button>
           </div>
         </div>
@@ -479,18 +548,18 @@ function HealthyCard({ account: a, onView, onRefresh, onRemove, refreshing }: an
             <div style={{display:'flex', alignItems:'center', gap:7, marginTop:6, flexWrap:'wrap'}}>
               {(a.totalUsers > 0 && a.activeUsers === a.totalUsers) && (
                 <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#edfbf4', color:'#1a9e68', border:'1px solid #8fd9bb', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
-                  <i className="fa-solid fa-users" style={{fontSize:10}}/>
+                  <UsersIcon size={10}/>
                   All {a.activeUsers} users active
                 </span>
               )}
               {a.daysSince === 0 ? (
                 <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#edfbf4', color:'#1a9e68', border:'1px solid #8fd9bb', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
-                  <i className="fa-solid fa-bolt" style={{fontSize:10}}/>
+                  <BoltIcon size={10}/>
                   Active today
                 </span>
               ) : (
                 <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#f0fdf4', color:'#15803d', border:'1px solid #bbf7d0', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
-                  <i className="fa-solid fa-clock" style={{fontSize:10}}/>
+                  <ClockIcon size={10}/>
                   Active {a.daysSince}d ago
                 </span>
               )}
@@ -510,13 +579,13 @@ function HealthyCard({ account: a, onView, onRefresh, onRemove, refreshing }: an
               style={{...iconBtnStyle(refreshHover), opacity: refreshing ? 0.5 : 1}}
               aria-label="Refresh"
             >
-              <i className={`fa-solid ${refreshing ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}/>
+              {refreshing ? <SpinnerIcon size={13}/> : <RefreshIcon size={13}/>}
             </button>
             <button
               onClick={onView}
               style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, fontFamily:FONT}}
             >
-              View <i className="fa-solid fa-arrow-right" style={{fontSize:10}}/>
+              View <ArrowRightIcon size={10}/>
             </button>
             <button
               onClick={onRemove}
@@ -526,7 +595,7 @@ function HealthyCard({ account: a, onView, onRefresh, onRemove, refreshing }: an
               aria-label="Untrack"
               title="Stop tracking"
             >
-              <i className="fa-solid fa-xmark"/>
+              <XIcon size={13}/>
             </button>
           </div>
         </div>
@@ -600,16 +669,20 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       <div style={{position:'relative', maxWidth:480, margin:'0 auto'}}>
         {/* Tilted decorative tiles */}
         <div style={{display:'flex', justifyContent:'center', gap:8, marginBottom:24}}>
-          {(['#e3f0ff', '#f5f3ff', '#fef0d9'] as string[]).map((c, i) => (
+          {([
+            {bg:'#e3f0ff', color:'#1a6fd4', Icon:RocketIcon},
+            {bg:'#f5f3ff', color:'#6d28d9', Icon:ChartLineIcon},
+            {bg:'#fef0d9', color:'#a05c00', Icon:UsersIcon},
+          ] as {bg:string;color:string;Icon:React.ComponentType<IconProps>}[]).map(({bg,color,Icon},i) => (
             <div key={i} style={{
-              width:48, height:48, borderRadius:10, background:c,
+              width:48, height:48, borderRadius:10, background:bg,
               border:'1px solid rgba(255,255,255,0.6)',
               boxShadow:'0 4px 12px rgba(15,31,61,0.06)',
-              transform:`translateY(${i === 1 ? -6 : 0}px) rotate(${(i-1)*4}deg)`,
+              transform:`translateY(${i===1?-6:0}px) rotate(${(i-1)*4}deg)`,
               display:'flex', alignItems:'center', justifyContent:'center',
-              color: ['#1a6fd4','#6d28d9','#a05c00'][i], fontWeight:800,
+              color, fontWeight:800,
             }}>
-              <i className={['fa-solid fa-rocket','fa-solid fa-chart-line','fa-solid fa-users'][i]}/>
+              <Icon size={16}/>
             </div>
           ))}
         </div>
@@ -624,7 +697,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           onClick={onAdd}
           style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:10, padding:'11px 22px', fontSize:14, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8, fontFamily:FONT}}
         >
-          <i className="fa-solid fa-plus" style={{fontSize:11}}/>
+          <PlusIcon size={11}/>
           Track a domain
         </button>
         <div style={{
@@ -632,17 +705,17 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:18,
           fontSize:12, color:'#6a6e71', textAlign:'left',
         }}>
-          {[
-            { icon:'fa-bolt', t:'30-day refresh', b:'Active, inactive, churned — auto-classified.' },
-            { icon:'fa-eye', t:'Risk anchored', b:'At-risk pilots surface at the top, every time.' },
-            { icon:'fa-rocket', t:'Per-user drilldown', b:'See exactly which user went cold and when.' },
-          ].map((f, i) => (
+          {([
+            {Icon:BoltIcon,       t:'30-day refresh',    b:'Active, inactive, churned — auto-classified.'},
+            {Icon:EyeIcon,        t:'Risk anchored',     b:'At-risk pilots surface at the top, every time.'},
+            {Icon:RocketIcon,     t:'Per-user drilldown',b:'See exactly which user went cold and when.'},
+          ] as {Icon:React.ComponentType<IconProps>;t:string;b:string}[]).map(({Icon,t,b}, i) => (
             <div key={i}>
               <div style={{display:'inline-flex', alignItems:'center', justifyContent:'center', width:26, height:26, borderRadius:6, background:'#edf6ff', color:'#1a6fd4', marginBottom:8}}>
-                <i className={`fa-solid ${f.icon}`} style={{fontSize:11}}/>
+                <Icon size={11}/>
               </div>
-              <div style={{fontWeight:700, color:'#0f1f3d', marginBottom:2, fontSize:13}}>{f.t}</div>
-              <div style={{lineHeight:1.4}}>{f.b}</div>
+              <div style={{fontWeight:700, color:'#0f1f3d', marginBottom:2, fontSize:13}}>{t}</div>
+              <div style={{lineHeight:1.4}}>{b}</div>
             </div>
           ))}
         </div>
@@ -1008,7 +1081,7 @@ export default function Dashboard({ session }: any) {
           borderRadius:24, display:'flex', alignItems:'center', gap:10,
           padding:'0 8px 0 14px', color:'#6a6e71', fontSize:13,
         }}>
-          <i className="fa-solid fa-magnifying-glass" style={{fontSize:12, flexShrink:0}}/>
+          <SearchIcon size={12}/>
           <input
             type="text"
             placeholder="Search domains…"
@@ -1061,14 +1134,14 @@ export default function Dashboard({ session }: any) {
               disabled={filtered.length === 0}
               style={{...ghostBtnStyle, opacity: filtered.length === 0 ? 0.4 : 1, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer'}}
             >
-              <i className="fa-solid fa-arrow-down-to-line" style={{fontSize:11, marginRight:6}}/>
+              <DownloadIcon size={11} style={{marginRight:6}}/>
               Export
             </button>
             <button
               onClick={() => setAdding(a => !a)}
               style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:8, padding:'8px 16px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', fontFamily:FONT}}
             >
-              <i className="fa-solid fa-plus" style={{fontSize:11, marginRight:8}}/>
+              <PlusIcon size={11} style={{marginRight:8}}/>
               Track domain
             </button>
           </div>
@@ -1078,7 +1151,7 @@ export default function Dashboard({ session }: any) {
         {adding && (
           <section style={{background:'#fff', border:'1.5px solid #a0ccfe', borderRadius:12, padding:'12px 14px 10px', boxShadow:'0 0 0 4px rgba(160,204,254,0.18)'}}>
             <div style={{display:'flex', alignItems:'center', gap:8, background:'#fafafa', borderRadius:8, padding:'4px 12px'}}>
-              <i className="fa-solid fa-globe" style={{color:'#6a6e71', fontSize:13, flexShrink:0}}/>
+              <GlobeIcon size={13} style={{color:'#6a6e71'}}/>
               <input
                 value={input}
                 onChange={e => setInput(e.target.value)}
@@ -1129,7 +1202,7 @@ export default function Dashboard({ session }: any) {
                 <div style={{display:'flex', gap:8, alignItems:'center'}}>
                   {a.status === 'loading' && (
                     <span style={{fontSize:11, fontWeight:600, background:'#f0f1f3', color:'#6a6e71', padding:'3px 10px', borderRadius:20}}>
-                      <i className="fa-solid fa-spinner fa-spin" style={{marginRight:5}}/>Finding users…
+                      <SpinnerIcon size={12} style={{marginRight:5}}/>Finding users…
                     </span>
                   )}
                   {a.status === 'error' && (
@@ -1227,9 +1300,9 @@ export default function Dashboard({ session }: any) {
                       width:36, height:36, borderRadius:10,
                       background:'#fff0f0', color:'#c81e1e', border:'1px solid #fdc5c5',
                       display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:15, flexShrink:0,
+                      flexShrink:0,
                     }}>
-                      <i className="fa-solid fa-triangle-exclamation"/>
+                      <WarningIcon size={15}/>
                     </span>
                     <div>
                       <h2 style={{margin:0, fontSize:16, fontWeight:800, color:'#1e1c18', letterSpacing:'-0.01em', lineHeight:1.2, display:'inline-flex', alignItems:'center', gap:10}}>
@@ -1270,9 +1343,9 @@ export default function Dashboard({ session }: any) {
                       width:36, height:36, borderRadius:10,
                       background:'#edfbf4', color:'#1a9e68', border:'1px solid #8fd9bb',
                       display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:15, flexShrink:0,
+                      flexShrink:0,
                     }}>
-                      <i className="fa-solid fa-circle-check"/>
+                      <CheckCircleIcon size={15}/>
                     </span>
                     <div>
                       <h2 style={{margin:0, fontSize:16, fontWeight:800, color:'#1e1c18', letterSpacing:'-0.01em', lineHeight:1.2, display:'inline-flex', alignItems:'center', gap:10}}>
@@ -1317,7 +1390,7 @@ export default function Dashboard({ session }: any) {
             {/* NO-RESULTS (search filtered everything) */}
             {atRisk.length === 0 && healthy.length === 0 && (
               <div style={{background:'#fff', border:'1px dashed #dfe0e0', borderRadius:12, padding:'48px 24px', textAlign:'center'}}>
-                <i className="fa-solid fa-magnifying-glass" style={{fontSize:22, color:'#c8cdd3', display:'block', marginBottom:10}}/>
+                <SearchIcon size={22} style={{color:'#c8cdd3', display:'block', marginBottom:10}}/>
                 <div style={{fontSize:14, fontWeight:700, color:'#33393d'}}>Nothing matches</div>
                 <div style={{fontSize:12, color:'#6a6e71', marginTop:4}}>Try a different filter or search.</div>
               </div>
