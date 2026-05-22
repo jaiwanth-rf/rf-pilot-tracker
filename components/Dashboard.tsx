@@ -280,6 +280,8 @@ function ReasonChip({ icon, label, tone = 'watch' }: { icon: string; label: stri
 }
 
 function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any) {
+  const [refreshHover, setRefreshHover] = useState(false)
+  const [removeHover, setRemoveHover] = useState(false)
   const tier = classify(a)
   const reasons = buildReasons(a)
   const topModules = getTopModules(a)
@@ -290,12 +292,17 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
   // TODO: replace with real 14-day per-account sparkline from Amplitude events endpoint
   const sparkline: number[] = Array(14).fill(0)
 
-  const iconBtnStyle: React.CSSProperties = {
-    width:32, height:32, borderRadius:8, background:'#fff', color:'#6a6e71',
-    border:'1px solid #dfe0e0', display:'inline-flex', alignItems:'center',
+  const iconBtnStyle = (hovered: boolean): React.CSSProperties => ({
+    width:32, height:32, borderRadius:8,
+    background: hovered ? 'rgba(245,245,245,0.98)' : 'rgba(255,255,255,0.95)',
+    color:'#6a6e71',
+    border:'1px solid #f4c2c2',
+    boxShadow:'0 1px 2px rgba(15,31,61,0.06)',
+    display:'inline-flex', alignItems:'center',
     justifyContent:'center', fontSize:13, cursor:'pointer', flexShrink:0,
     fontFamily:FONT,
-  }
+    transition:'background 120ms',
+  })
 
   return (
     <article style={{
@@ -338,7 +345,9 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
               onClick={onRefresh}
               disabled={refreshing}
               title="Refresh from Amplitude"
-              style={{...iconBtnStyle, opacity: refreshing ? 0.5 : 1}}
+              onMouseEnter={() => setRefreshHover(true)}
+              onMouseLeave={() => setRefreshHover(false)}
+              style={{...iconBtnStyle(refreshHover), opacity: refreshing ? 0.5 : 1}}
               aria-label="Refresh"
             >
               <i className={`fa-solid ${refreshing ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}/>
@@ -351,7 +360,9 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
             </button>
             <button
               onClick={onRemove}
-              style={iconBtnStyle}
+              onMouseEnter={() => setRemoveHover(true)}
+              onMouseLeave={() => setRemoveHover(false)}
+              style={iconBtnStyle(removeHover)}
               aria-label="Untrack"
               title="Stop tracking"
             >
@@ -418,83 +429,159 @@ function AtRiskCard({ account: a, onView, onRefresh, onRemove, refreshing }: any
   )
 }
 
-function HealthyRow({ account: a, onView, onRefresh, onRemove, refreshing }: any) {
-  const [hover, setHover] = useState(false)
-  const tier = classify(a)
+function HealthyCard({ account: a, onView, onRefresh, onRemove, refreshing }: any) {
+  const [refreshHover, setRefreshHover] = useState(false)
+  const [removeHover, setRemoveHover] = useState(false)
   const topModules = getTopModules(a)
   // TODO: replace with real 14-day sparkline from Amplitude events endpoint
   const sparkline: number[] = Array(14).fill(0)
 
-  const smIconBtnStyle: React.CSSProperties = {
-    width:26, height:26, borderRadius:8, background:'#fff', color:'#6a6e71',
-    border:'1px solid #dfe0e0', display:'inline-flex', alignItems:'center',
-    justifyContent:'center', fontSize:11, cursor:'pointer', fontFamily:FONT,
-  }
+  const iconBtnStyle = (hovered: boolean): React.CSSProperties => ({
+    width:32, height:32, borderRadius:8,
+    background: hovered ? 'rgba(240,253,247,0.98)' : 'rgba(255,255,255,0.95)',
+    color:'#1a9e68',
+    border:'1px solid #bce5d0',
+    boxShadow:'0 1px 2px rgba(15,31,61,0.06)',
+    display:'inline-flex', alignItems:'center',
+    justifyContent:'center', fontSize:13, cursor:'pointer', flexShrink:0,
+    fontFamily:FONT,
+    transition:'background 120ms',
+  })
 
   return (
-    <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onClick={onView}
-      style={{
-        display:'grid',
-        gridTemplateColumns:'32px 1.6fr 1fr 1.1fr 1.4fr 1fr auto',
-        gap:14, alignItems:'center',
-        padding:'10px 16px 10px 14px',
-        background: hover ? '#f5f9ff' : '#fff',
-        borderBottom:'1px solid #efefef',
-        cursor:'pointer',
-        transition:'background 120ms',
-      }}
-    >
-      <DomainAvatar domain={a.domain} size={32} tier={tier}/>
-      <div style={{minWidth:0}}>
-        <div style={{fontSize:14, fontWeight:700, color:'#0f1f3d', letterSpacing:'-0.005em', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{a.domain}</div>
-        <div style={{fontSize:11, color:'#96999c', fontWeight:500}}>Added {a.addedAt}</div>
+    <article style={{
+      background:'#fff', border:'1px solid #efefef', borderRadius:12,
+      position:'relative', overflow:'hidden',
+      boxShadow:'0 1px 0 rgba(15,31,61,0.02), 0 6px 18px rgba(26,158,104,0.05)',
+    }}>
+      {/* Left accent bar */}
+      <div style={{position:'absolute', left:0, top:0, bottom:0, width:4, background:'#1a9e68'}}/>
+      {/* Header wash */}
+      <div style={{
+        position:'absolute', left:0, right:0, top:0, height:64,
+        background:'linear-gradient(180deg, #edfbf4 0%, rgba(255,255,255,0) 100%)',
+        pointerEvents:'none',
+      }}/>
+
+      <div style={{position:'relative', padding:'18px 20px 16px 24px'}}>
+        {/* Top row: avatar · domain · positive chips · status + actions */}
+        <div style={{display:'flex', alignItems:'center', gap:14, marginBottom:14}}>
+          <DomainAvatar domain={a.domain} size={44} tier="healthy"/>
+          <div style={{flex:1, minWidth:0}}>
+            <div style={{display:'flex', alignItems:'baseline', gap:10, flexWrap:'wrap'}}>
+              <h3 style={{margin:0, fontSize:18, fontWeight:800, color:'#0f1f3d', letterSpacing:'-0.01em'}}>
+                {a.domain}
+              </h3>
+              <span style={{fontSize:12, color:'#96999c', fontWeight:500}}>
+                Added {a.addedAt} · {(a.totalEvents || 0).toLocaleString()} events · {a.modulesCount || 0} modules
+              </span>
+            </div>
+            <div style={{display:'flex', alignItems:'center', gap:7, marginTop:6, flexWrap:'wrap'}}>
+              {(a.totalUsers > 0 && a.activeUsers === a.totalUsers) && (
+                <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#edfbf4', color:'#1a9e68', border:'1px solid #8fd9bb', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
+                  <i className="fa-solid fa-users" style={{fontSize:10}}/>
+                  All {a.activeUsers} users active
+                </span>
+              )}
+              {a.daysSince === 0 ? (
+                <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#edfbf4', color:'#1a9e68', border:'1px solid #8fd9bb', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
+                  <i className="fa-solid fa-bolt" style={{fontSize:10}}/>
+                  Active today
+                </span>
+              ) : (
+                <span style={{display:'inline-flex', alignItems:'center', gap:6, background:'#f0fdf4', color:'#15803d', border:'1px solid #bbf7d0', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:600, whiteSpace:'nowrap'}}>
+                  <i className="fa-solid fa-clock" style={{fontSize:10}}/>
+                  Active {a.daysSince}d ago
+                </span>
+              )}
+              {topModules.slice(0, 2).map(([name], i) => (
+                <ModuleChip key={i} name={name}/>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0}}>
+            <StatusPill tier="healthy"/>
+            <button
+              onClick={onRefresh}
+              disabled={refreshing}
+              title="Refresh from Amplitude"
+              onMouseEnter={() => setRefreshHover(true)}
+              onMouseLeave={() => setRefreshHover(false)}
+              style={{...iconBtnStyle(refreshHover), opacity: refreshing ? 0.5 : 1}}
+              aria-label="Refresh"
+            >
+              <i className={`fa-solid ${refreshing ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}/>
+            </button>
+            <button
+              onClick={onView}
+              style={{background:'#0f1f3d', color:'#fff', border:'none', borderRadius:8, padding:'7px 14px', fontSize:13, fontWeight:700, cursor:'pointer', display:'inline-flex', alignItems:'center', gap:4, fontFamily:FONT}}
+            >
+              View <i className="fa-solid fa-arrow-right" style={{fontSize:10}}/>
+            </button>
+            <button
+              onClick={onRemove}
+              onMouseEnter={() => setRemoveHover(true)}
+              onMouseLeave={() => setRemoveHover(false)}
+              style={iconBtnStyle(removeHover)}
+              aria-label="Untrack"
+              title="Stop tracking"
+            >
+              <i className="fa-solid fa-xmark"/>
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom row: user gauge · sparkline · "what's working" insight */}
+        <div style={{
+          display:'grid', gridTemplateColumns:'auto auto 1fr', gap:20,
+          alignItems:'center', paddingTop:14, borderTop:'1px solid #efefef',
+        }}>
+          {/* User split */}
+          <div>
+            <div style={{fontSize:10, fontWeight:700, color:'#96999c', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6}}>Users</div>
+            <UsersGauge active={a.activeUsers || 0} total={a.totalUsers || 0} width={110}/>
+            <div style={{fontSize:11, color:'#6a6e71', marginTop:4, fontWeight:500}}>
+              <span style={{color:'#1a9e68', fontWeight:700}}>{a.activeUsers || 0} active</span>
+              <span style={{color:'#96999c'}}> · {(a.totalUsers || 0) - (a.activeUsers || 0)} dormant</span>
+            </div>
+          </div>
+
+          {/* 14-day activity */}
+          <div>
+            <div style={{fontSize:10, fontWeight:700, color:'#96999c', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6}}>14-day activity</div>
+            <ActivityBars data={sparkline} width={150} height={32} color="#2eb67d" dimColor="#d1fae5"/>
+            <div style={{fontSize:11, color:'#6a6e71', marginTop:4, fontWeight:500}}>
+              Last seen{' '}
+              <span style={{color:'#1a9e68', fontWeight:700}}>
+                {a.daysSince === 0 ? 'today' : `${a.daysSince}d ago`}
+              </span>
+            </div>
+          </div>
+
+          {/* What's working insight */}
+          <div style={{
+            background:'linear-gradient(115.83deg, #edfbf4 1.33%, #f0fdf9 51.21%, #f0fdf4 101.09%)',
+            border:'1px solid #c3f0d8', borderRadius:10, padding:'10px 14px', minWidth:0,
+          }}>
+            <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:4}}>
+              <AIRASparkle size={12}/>
+              <span style={{
+                fontSize:10, fontWeight:800, letterSpacing:'0.5px', textTransform:'uppercase',
+                background:'linear-gradient(115.67deg, #4aa1ff 15.76%, #6455ff 118.86%)',
+                WebkitBackgroundClip:'text', backgroundClip:'text',
+                WebkitTextFillColor:'transparent', color:'transparent',
+              }}>Aira read</span>
+            </div>
+            <div style={{fontSize:13, color:'#33393d', lineHeight:1.45, fontWeight:500}}>
+              {topModules.length > 0
+                ? `Strong engagement — ${a.activeUsers || 0} ${(a.activeUsers || 0) === 1 ? 'user' : 'users'} active across ${topModules.length} module${topModules.length > 1 ? 's' : ''} including ${topModules[0]?.[0]}. Pilot is progressing well.`
+                : `${a.activeUsers || 0} ${(a.activeUsers || 0) === 1 ? 'user' : 'users'} active in the last 7 days. No churn detected — this pilot is on track.`
+              }
+            </div>
+          </div>
+        </div>
       </div>
-      <UsersGauge active={a.activeUsers || 0} total={a.totalUsers || 0} width={70}/>
-      <div style={{fontSize:13, color:'#33393d', fontWeight:600, fontVariantNumeric:'tabular-nums'}}>
-        {(a.totalEvents || 0).toLocaleString()}
-        <span style={{fontSize:11, color:'#96999c', fontWeight:500, marginLeft:6}}>events</span>
-      </div>
-      <div style={{display:'flex', alignItems:'center', gap:10}}>
-        <Sparkline data={sparkline} width={84} height={24} color="#2eb67d"/>
-        <span style={{fontSize:12, color:'#6a6e71', fontWeight:600, whiteSpace:'nowrap'}}>
-          {a.daysSince === 0 ? 'Today' : `${a.daysSince}d ago`}
-        </span>
-      </div>
-      <div style={{display:'flex', gap:4, flexWrap:'wrap', alignItems:'center'}}>
-        {topModules.slice(0, 3).map(([name], i) => (
-          <ModuleChip key={i} name={name}/>
-        ))}
-        {topModules.length > 3 && (
-          <span style={{fontSize:11, color:'#96999c', fontWeight:600, alignSelf:'center'}}>+{topModules.length - 3}</span>
-        )}
-        {topModules.length === 0 && (
-          <span style={{fontSize:11, color:'#c8cdd3', fontWeight:500}}>—</span>
-        )}
-      </div>
-      <div style={{display:'flex', gap:4, alignItems:'center', opacity: hover ? 1 : 0.6, transition:'opacity 120ms'}}>
-        <button
-          onClick={(e) => { e.stopPropagation(); onRefresh() }}
-          disabled={refreshing}
-          style={smIconBtnStyle}
-          aria-label="Refresh"
-          title="Refresh"
-        >
-          <i className={`fa-solid ${refreshing ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'}`}/>
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove() }}
-          style={smIconBtnStyle}
-          aria-label="Untrack"
-          title="Stop tracking"
-        >
-          <i className="fa-solid fa-xmark"/>
-        </button>
-        <i className="fa-solid fa-chevron-right" style={{fontSize:11, color:'#9aa5b1', marginLeft:6}}/>
-      </div>
-    </div>
+    </article>
   )
 }
 
@@ -1183,26 +1270,9 @@ export default function Dashboard({ session }: any) {
                     </select>
                   </label>
                 </header>
-                <div style={{background:'#fff', border:'1px solid #efefef', borderRadius:12, overflow:'hidden'}}>
-                  {/* Table header */}
-                  <div style={{
-                    display:'grid',
-                    gridTemplateColumns:'32px 1.6fr 1fr 1.1fr 1.4fr 1fr auto',
-                    gap:14, alignItems:'center',
-                    padding:'10px 16px 10px 14px',
-                    background:'#fafafa', borderBottom:'1px solid #efefef',
-                    fontSize:10, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.6px', color:'#6a6e71',
-                  }}>
-                    <div/>
-                    <div>Domain</div>
-                    <div>Users</div>
-                    <div>Events (30d)</div>
-                    <div>Trend · last seen</div>
-                    <div>Modules tested</div>
-                    <div style={{width:80}}/>
-                  </div>
+                <div style={{display:'flex', flexDirection:'column', gap:10}}>
                   {healthy.map(a => (
-                    <HealthyRow
+                    <HealthyCard
                       key={a.domain}
                       account={a}
                       refreshing={refreshing[a.domain]}
