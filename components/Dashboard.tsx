@@ -894,6 +894,35 @@ export default function Dashboard({ session }: any) {
 
   const signOut = () => supabase.auth.signOut()
 
+  function exportCSV() {
+    const rows = filtered.map(a => [
+      a.domain,
+      a._tier,
+      a.totalUsers ?? 0,
+      a.activeUsers ?? 0,
+      a.inactiveUsers ?? 0,
+      a.totalEvents ?? 0,
+      a.modulesCount ?? 0,
+      a.daysSince ?? 0,
+      a.lastSeen ?? '',
+      a.addedAt ?? '',
+    ])
+    const escape = (v: unknown) => {
+      const s = String(v ?? '')
+      return /[,"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+    }
+    const header = ['Domain','Tier','Total Users','Active Users','Inactive Users','Total Events','Modules Count','Days Since Last Activity','Last Seen','Added']
+    const csv = [header, ...rows].map(r => r.map(escape).join(',')).join('\n')
+    const date = new Date().toISOString().slice(0, 10)
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `rf-pilot-tracker-${date}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   // ── Derived list-view state ──────────────────────────────────────
   const readyAccounts = useMemo(() =>
     accounts.filter(a => a.status === 'ready').map(a => ({ ...a, _tier: classify(a) })),
@@ -1027,7 +1056,11 @@ export default function Dashboard({ session }: any) {
             </p>
           </div>
           <div style={{display:'flex', gap:8, alignItems:'center'}}>
-            <button style={ghostBtnStyle}>
+            <button
+              onClick={exportCSV}
+              disabled={filtered.length === 0}
+              style={{...ghostBtnStyle, opacity: filtered.length === 0 ? 0.4 : 1, cursor: filtered.length === 0 ? 'not-allowed' : 'pointer'}}
+            >
               <i className="fa-solid fa-arrow-down-to-line" style={{fontSize:11, marginRight:6}}/>
               Export
             </button>
@@ -1212,10 +1245,6 @@ export default function Dashboard({ session }: any) {
                       </p>
                     </div>
                   </div>
-                  <button style={{...ghostBtnStyle, padding:'5px 11px', fontSize:12}}>
-                    <i className="fa-solid fa-envelope" style={{fontSize:10, marginRight:6}}/>
-                    Email digest
-                  </button>
                 </header>
                 <div style={{display:'flex', flexDirection:'column', gap:10}}>
                   {atRisk.map(a => (
