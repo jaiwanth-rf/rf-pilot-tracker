@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 // ─── Color tokens (used by AccountDetail + utility components) ────────
@@ -854,6 +855,8 @@ function AccountDetail({ account, onBack }: any) {
 // ─── Main Dashboard component ─────────────────────────────────────────
 
 export default function Dashboard({ session }: any) {
+  const router = useRouter()
+
   // ── Existing state (do not remove) ──────────────────────────────
   const [accounts, setAccounts] = useState<any[]>([])
   const [selected, setSelected] = useState<any>(null)
@@ -1290,7 +1293,7 @@ export default function Dashboard({ session }: any) {
                       key={a.domain}
                       account={a}
                       refreshing={refreshing[a.domain]}
-                      onView={() => setSelected(a)}
+                      onView={() => router.push(`/accounts/${a.domain}`)}
                       onRefresh={() => refreshDomain(a.domain)}
                       onRemove={() => removeDomain(a.domain)}
                     />
@@ -1343,7 +1346,7 @@ export default function Dashboard({ session }: any) {
                       key={a.domain}
                       account={a}
                       refreshing={refreshing[a.domain]}
-                      onView={() => setSelected(a)}
+                      onView={() => router.push(`/accounts/${a.domain}`)}
                       onRefresh={() => refreshDomain(a.domain)}
                       onRemove={() => removeDomain(a.domain)}
                     />
