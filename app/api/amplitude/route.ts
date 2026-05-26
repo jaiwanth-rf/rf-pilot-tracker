@@ -1,26 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const AMP_KEY = process.env.AMPLITUDE_API_KEY!
-const AMP_SECRET = process.env.AMPLITUDE_SECRET_KEY!
-const AUTH = Buffer.from(`${AMP_KEY}:${AMP_SECRET}`).toString('base64')
+function getAuth() {
+  const key = process.env.AMPLITUDE_API_KEY
+  const secret = process.env.AMPLITUDE_SECRET_KEY
+  if (!key || !secret) throw new Error('AMPLITUDE_API_KEY or AMPLITUDE_SECRET_KEY is not set in environment variables')
+  return Buffer.from(`${key}:${secret}`).toString('base64')
+}
 
 async function findUsersByDomain(domain: string) {
+  const auth = getAuth()
   const res = await fetch(
     `https://amplitude.com/api/2/usersearch?user=${encodeURIComponent('@' + domain)}`,
-    { headers: { Authorization: `Basic ${AUTH}` } }
+    { headers: { Authorization: `Basic ${auth}` } }
   )
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('Amplitude API credentials are invalid. Check AMPLITUDE_API_KEY and AMPLITUDE_SECRET_KEY.')
+  }
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Amplitude API error (${res.status}): ${text.slice(0, 200)}`)
+  }
   const data = await res.json()
-  return data.matches || []
+  return (data.matches || []) as any[]
 }
 
 async function getUserActivity(amplitudeId: string) {
+  const auth = getAuth()
   const res = await fetch(
     `https://amplitude.com/api/2/useractivity?user=${encodeURIComponent(amplitudeId)}&limit=200`,
-    { headers: { Authorization: `Basic ${AUTH}` } }
+    { headers: { Authorization: `Basic ${auth}` } }
   )
   const data = await res.json()
   return { events: data.events || [], userData: data.userData || {} }
 }
+
 
 function processEvents(events: any[], userData: any) {
   const now = Date.now()
