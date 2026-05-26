@@ -27,9 +27,15 @@ body {
 
 /* ─── Print / PDF export ─────────────────────────────────────────────────── */
 @media print {
-  /* Hide everything that isn't the playbook content */
-  header, nav, [data-no-print], .no-print {
+  /* Hide UI chrome */
+  .no-print {
     display: none !important;
+  }
+
+  /* Preserve colours (badges, section headers, status pills) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   body {
@@ -37,29 +43,60 @@ body {
     font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
-  /* Page setup */
+  /* Remove viewport-height constraints that create blank pages */
+  body, #__next, main {
+    min-height: unset !important;
+  }
+
+  /* Tighten page padding for print */
+  main {
+    padding-bottom: 24pt !important;
+    max-width: 100% !important;
+  }
+
+  /* Remove sticky positioning from any leftover chrome */
+  [style*="position:sticky"], [style*="position: sticky"] {
+    position: static !important;
+  }
+
+  /* ── Page setup ── */
   @page {
+    size: A4;
     margin: 1.4cm 1.8cm;
   }
 
-  /* PDF header printed via CSS counters */
+  /* ── Print header (present-mode root element) ── */
   #playbook-print-content::before {
-    content: attr(data-print-title) " — Pilot Playbook — As of " attr(data-print-date);
+    content: attr(data-print-title) " — Pilot Playbook — " attr(data-print-date);
     display: block;
     font-size: 11pt;
     font-weight: 700;
     color: #0f1f3d;
-    margin-bottom: 18pt;
+    margin-bottom: 16pt;
     padding-bottom: 8pt;
     border-bottom: 1.5pt solid #e5e7eb;
   }
 
-  /* Page numbers in footer */
-  @page {
-    @bottom-right {
-      content: "Page " counter(page) " of " counter(pages);
-      font-size: 9pt;
-      color: #9ca3af;
-    }
+  /* ── Page-break rules ── */
+
+  /* Each top-level section (Pre-requisites, Obstacles, etc.) can break
+     between sections but never mid-section */
+  [data-playbook-section] {
+    page-break-inside: avoid;
+  }
+
+  /* For longer sections allow a break before (not inside an item) */
+  [data-playbook-section] + [data-playbook-section] {
+    page-break-before: auto;
+  }
+
+  /* Never split a single item row across pages */
+  [data-playbook-item] {
+    page-break-inside: avoid;
+  }
+
+  /* Section kind headers should stay with the first item */
+  [data-playbook-section] > div:first-child {
+    page-break-after: avoid;
   }
 }
