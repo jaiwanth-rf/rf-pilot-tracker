@@ -15,6 +15,9 @@ export default function PresentModePage({ params }: { params: Params }) {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [customerName, setCustomerName] = useState<string | null>(null)
+  // Print-mode: navigate here with ?print=1 to auto-trigger window.print()
+  const [isPrintMode, setIsPrintMode] = useState(false)
+  const [playbookReady, setPlaybookReady] = useState(false)
 
   // ── Auth ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -24,6 +27,24 @@ export default function PresentModePage({ params }: { params: Params }) {
       setLoading(false)
     })
   }, [router])
+
+  // ── Detect ?print=1 from URL (after hydration) ────────────────────
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    setIsPrintMode(p.get('print') === '1')
+  }, [])
+
+  // ── Auto-print once playbook is fully rendered ────────────────────
+  useEffect(() => {
+    if (!isPrintMode || !playbookReady) return
+    // Small delay: let fonts & layout paint after React commit
+    const timer = setTimeout(() => {
+      const handleAfterPrint = () => router.push(`/accounts/${domain}`)
+      window.addEventListener('afterprint', handleAfterPrint, { once: true })
+      window.print()
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [isPrintMode, playbookReady, domain, router])
 
   // ── Resolve customer name from tracked_domains ─────────────────
   useEffect(() => {
@@ -116,6 +137,7 @@ export default function PresentModePage({ params }: { params: Params }) {
             customerName={displayName}
             userId={session.user.id}
             presentMode
+            onReady={() => setPlaybookReady(true)}
           />
         )}
       </main>

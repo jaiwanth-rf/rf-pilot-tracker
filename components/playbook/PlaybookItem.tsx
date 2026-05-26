@@ -79,6 +79,7 @@ export default function PlaybookItem({
     <div
       ref={setNodeRef}
       style={style}
+      data-playbook-item="true"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setConfirmDelete(false) }}
     >
