@@ -15,7 +15,6 @@ import {
   updateItem,
   updateSectionTitle,
 } from '@/lib/playbook-queries'
-import SynthesisBar from './SynthesisBar'
 import PlaybookSection from './PlaybookSection'
 
 const FONT = "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
@@ -192,13 +191,6 @@ export default function PilotPlaybookTab({
 
   return (
     <div style={{ fontFamily: FONT }}>
-      {/* Synthesis bar */}
-      {!presentMode && (
-        <div style={{ marginBottom: 18 }}>
-          <SynthesisBar playbook={playbook} sections={sections} />
-        </div>
-      )}
-
       {/* Playbook header */}
       <div style={{
         background: '#fff',
