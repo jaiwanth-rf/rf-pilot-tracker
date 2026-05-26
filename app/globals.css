@@ -27,42 +27,52 @@ body {
 
 /* ─── Print / PDF export ─────────────────────────────────────────────────── */
 @media print {
-  /* Hide UI chrome */
+  /* ── Page setup ── */
+  @page {
+    size: A4;
+    margin: 1.4cm 1.8cm;
+  }
+
+  /* ── CRITICAL: Override Tailwind's flex flex-col on <body>
+        Browsers cannot paginate a flex container — this is the #1 blank-page cause ── */
+  html, body {
+    display: block !important;
+    height: auto !important;
+    min-height: unset !important;
+    overflow: visible !important;
+    background: #fff !important;
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  /* ── Only hide the UI chrome that should never appear in print ── */
   .no-print {
     display: none !important;
   }
 
-  /* Preserve colours (badges, section headers, status pills) */
+  /* ── Preserve colours (badges, section headers, status pills) ── */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  body {
-    background: #fff !important;
-    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* ── Drop box-shadows — they print as grey smudges ── */
+  * {
+    box-shadow: none !important;
   }
 
-  /* Remove viewport-height constraints that create blank pages */
-  body, #__next, main {
+  /* ── Unlock any height/overflow constraints on layout wrappers ── */
+  #__next, main {
+    display: block !important;
+    height: auto !important;
     min-height: unset !important;
-  }
-
-  /* Tighten page padding for print */
-  main {
-    padding-bottom: 24pt !important;
+    overflow: visible !important;
     max-width: 100% !important;
+    padding-bottom: 24pt !important;
   }
 
-  /* Remove sticky positioning from any leftover chrome */
+  /* ── Unstick any sticky-positioned chrome ── */
   [style*="position:sticky"], [style*="position: sticky"] {
     position: static !important;
-  }
-
-  /* ── Page setup ── */
-  @page {
-    size: A4;
-    margin: 1.4cm 1.8cm;
   }
 
   /* ── Print header (present-mode root element) ── */
@@ -77,26 +87,42 @@ body {
     border-bottom: 1.5pt solid #e5e7eb;
   }
 
+  /* ── Ensure playbook content is explicitly visible ── */
+  #playbook-print-content {
+    display: block !important;
+  }
+
   /* ── Page-break rules ── */
 
-  /* Each top-level section (Pre-requisites, Obstacles, etc.) can break
-     between sections but never mid-section */
+  /* Each top-level section stays together */
   [data-playbook-section] {
+    display: block !important;
+    break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* For longer sections allow a break before (not inside an item) */
+  /* Allow a natural break between sections */
   [data-playbook-section] + [data-playbook-section] {
+    break-before: auto;
     page-break-before: auto;
   }
 
   /* Never split a single item row across pages */
   [data-playbook-item] {
+    display: block !important;
+    break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Section kind headers should stay with the first item */
+  /* Section kind headers stay with their content */
   [data-playbook-section] > div:first-child {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Section sub-headers (h3) stay pinned to their first item */
+  #playbook-print-content h3 {
+    break-after: avoid;
     page-break-after: avoid;
   }
 }
