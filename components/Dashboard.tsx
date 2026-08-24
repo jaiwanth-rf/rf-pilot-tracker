@@ -60,6 +60,11 @@ function UserClockIcon(p: IconProps) { return ic(<><path d="M15 21v-2a4 4 0 0 0-
 function SnowflakeIcon(p: IconProps) { return ic(<><path d="M12 2v20M2 12h20"/><path d="M12 6l-2-2M12 6l2-2M12 18l-2 2M12 18l2 2M6 12l-2-2M6 12l-2 2M18 12l2-2M18 12l2 2"/></>, p) }
 function ClockRotateLeftIcon(p: IconProps) { return ic(<><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></>, p) }
 function UsersSlashIcon(p: IconProps) { return ic(<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M2 2l20 20"/></>, p) }
+function ArrowLeftIcon(p: IconProps) { return ic(<><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></>, p) }
+function ExternalLinkIcon(p: IconProps) { return ic(<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></>, p) }
+function CubesIcon(p: IconProps) { return ic(<><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></>, p) }
+function ListCheckIcon(p: IconProps) { return ic(<><path d="M11 6H3"/><path d="M11 12H3"/><path d="M11 18H3"/><polyline points="16 6 18 8 22 4"/></>, p) }
+function CheckIcon(p: IconProps) { return ic(<polyline points="20 6 9 17 4 12"/>, p) }
 
 // ─── List-view logic ──────────────────────────────────────────────────
 
@@ -690,164 +695,352 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   )
 }
 
-// ─── AccountDetail — UNCHANGED ────────────────────────────────────────
+// ─── AccountDetail helpers ─────────────────────────────────────────────
+
+function buildPlaybook(account: any): {
+  story: string
+  actions: Array<{ title: string; body: string; priority: 'high' | 'medium' | 'low'; targets: string[]; cta: string; icon: React.ReactNode }>
+} {
+  // TODO: Replace with AIRA-generated playbook once the synthesis endpoint is available
+  const users = account.users || []
+  const churned = users.filter((u: any) => u.daysSince >= 14)
+  const inactive = users.filter((u: any) => u.daysSince >= 3 && u.daysSince < 14)
+  const active = users.filter((u: any) => u.daysSince < 3)
+  const topMods = getTopModules(account)
+
+  const story = churned.length > 0
+    ? `${churned.length} user${churned.length > 1 ? 's have' : ' has'} gone cold (14+ days). Immediate re-engagement is the priority before the pilot window closes.`
+    : inactive.length > 0
+    ? `${inactive.length} user${inactive.length > 1 ? 's are' : ' is'} drifting (3–14 days inactive). A quick check-in now prevents churn.`
+    : `All ${active.length} user${active.length !== 1 ? 's are' : ' is'} active. Focus on deepening adoption to drive expansion.`
+
+  const actions: ReturnType<typeof buildPlaybook>['actions'] = []
+
+  if (churned.length > 0) {
+    actions.push({
+      title: 'Re-engage churned users',
+      body: `${churned.map((u: any) => u.name || u.email).join(', ')} ${churned.length === 1 ? 'has' : 'have'} been inactive for 14+ days. A personalised outreach noting their last activity can reopen the conversation.`,
+      priority: 'high',
+      targets: churned.map((u: any) => u.email),
+      cta: 'Draft re-engagement email',
+      icon: <UserSlashIcon size={14}/>,
+    })
+  }
+
+  if (inactive.length > 0) {
+    actions.push({
+      title: 'Nudge drifting users',
+      body: `${inactive.map((u: any) => u.name || u.email).join(', ')} ${inactive.length === 1 ? "hasn't" : "haven't"} been active in 3–14 days. A light check-in or new feature tip often brings them back.`,
+      priority: churned.length > 0 ? 'medium' : 'high',
+      targets: inactive.map((u: any) => u.email),
+      cta: 'Send check-in note',
+      icon: <UserClockIcon size={14}/>,
+    })
+  }
+
+  if (topMods.length > 0) {
+    actions.push({
+      title: 'Deepen feature adoption',
+      body: `${topMods[0]?.[1] ?? 0} user${(topMods[0]?.[1] ?? 0) !== 1 ? 's are' : ' is'} already using ${topMods[0]?.[0]}. Surface advanced workflows to increase stickiness before the pilot ends.`,
+      priority: 'medium',
+      targets: active.slice(0, 3).map((u: any) => u.email),
+      cta: 'Schedule feature deep-dive',
+      icon: <CubesIcon size={14}/>,
+    })
+  }
+
+  if (active.length > 0 && churned.length === 0 && inactive.length === 0) {
+    actions.push({
+      title: 'Identify expansion champions',
+      body: `Everyone is engaged. Identify the power user${active.length > 1 ? 's' : ''} who could advocate for a seat expansion — ${active.slice(0, 2).map((u: any) => u.name || u.email).join(' and ')} ${active.length > 2 ? 'and others are' : active.length === 1 ? 'is' : 'are'} strong candidates.`,
+      priority: 'low',
+      targets: active.slice(0, 3).map((u: any) => u.email),
+      cta: 'Log expansion conversation',
+      icon: <UsersIcon size={14}/>,
+    })
+  }
+
+  return { story, actions }
+}
+
+// ─── AccountDetail ─────────────────────────────────────────────────────
 
 function AccountDetail({ account, onBack }: any) {
-  const [selectedUser, setSelectedUser] = useState(account.users[0])
-  const [tab, setTab] = useState('account')
-  const allModules = [...new Set(account.users.flatMap((u: any) => u.modules))] as string[]
+  const [tab, setTab] = useState<'account' | 'people' | 'playbook'>('account')
+  const [selectedUser, setSelectedUser] = useState(account.users?.[0] ?? null)
+
+  const users = (account.users || []).map((u: any) => {
+    const bucket: 'active' | 'inactive' | 'churned' = u.daysSince < 3 ? 'active' : u.daysSince < 14 ? 'inactive' : 'churned'
+    // TODO: Replace with AIRA-generated recommended action once insight endpoint is available
+    const recommendedAction: string | null =
+      bucket === 'churned' ? `Re-engage ${u.name || u.email} — last seen ${u.daysSince} days ago.`
+      : bucket === 'inactive' ? `Check in with ${u.name || u.email} — ${u.daysSince} days since last login.`
+      : (u.activeDays > 5) ? `${u.name || u.email} is a power user — consider them for expansion advocacy.`
+      : null
+    return { ...u, bucket, recommendedAction }
+  })
+
+  const activeUsers  = users.filter((u: any) => u.bucket === 'active')
+  const inactiveUsers = users.filter((u: any) => u.bucket === 'inactive')
+  const churnedUsers  = users.filter((u: any) => u.bucket === 'churned')
+  const topModules = getTopModules(account)
+
   const topEvents = (() => {
-    const map: any = {}
-    account.users.forEach((u: any) => u.topEvents.forEach((e: any) => { map[e.name]=(map[e.name]||0)+e.count }))
-    return Object.entries(map).sort((a: any,b: any)=>b[1]-a[1]).slice(0,10).map(([n,c])=>({n,c}))
+    const map: Record<string, number> = {}
+    ;(account.users || []).forEach((u: any) => u.topEvents?.forEach((e: any) => { map[e.name] = (map[e.name] || 0) + e.count }))
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([n, c]) => ({ n, c }))
   })()
-  const maxEv = Math.max(...account.users.map((u: any) => u.totalEvents))
-  const insights: any[] = []
-  const churned = account.users.filter((u: any) => u.daysSince >= 14)
-  const inactive = account.users.filter((u: any) => u.daysSince >= 3 && u.daysSince < 14)
-  const active = account.users.filter((u: any) => u.daysSince < 3)
-  const aiUsers = account.users.filter((u: any) => u.modules.some((m: string) => /gpt|aira|agent/i.test(m)))
-  const seqUsers = account.users.filter((u: any) => u.modules.some((m: string) => /sequence/i.test(m)))
-  const topUser = [...account.users].sort((a: any,b: any) => b.activeDays-a.activeDays)[0]
-  const lowEv = account.users.filter((u: any) => u.totalEvents < 20 && u.daysSince >= 7)
-  if (churned.length) insights.push({sev:'danger',t:`${churned.length} user${churned.length>1?'s':''} churned`,b:`${churned.map((u:any)=>u.name).join(', ')} logged in once and never returned.`})
-  if (active.length) insights.push({sev:'info',t:`${active.length} user${active.length>1?'s':''} still active`,b:`${active.map((u:any)=>u.name).join(', ')} logged in recently.`})
-  if (aiUsers.length) insights.push({sev:'info',t:`AI features tested by ${aiUsers.length}`,b:`${aiUsers.map((u:any)=>u.name).join(', ')} explored RF GPT, Aira, or Agents.`})
-  if (seqUsers.length) insights.push({sev:'info',t:`Sequences adopted by ${seqUsers.length}`,b:`${seqUsers.map((u:any)=>u.name).join(', ')} built sequences.`})
-  if (inactive.length) insights.push({sev:'warn',t:`${inactive.length} inactive 3-14d`,b:`${inactive.map((u:any)=>u.name).join(', ')} haven't logged in recently.`})
-  if (topUser?.activeDays > 2) insights.push({sev:'info',t:`Power user: ${topUser.name}`,b:`${topUser.activeDays} active days, ${topUser.totalEvents} events.`})
-  if (lowEv.length) insights.push({sev:'warn',t:`${lowEv.length} low-engagement user${lowEv.length>1?'s':''}`,b:`${lowEv.map((u:any)=>u.name).join(', ')} have under 20 events.`})
-  const card = {background:T.N0,border:`1px solid ${T.N200}`,borderRadius:12,padding:'16px 18px'}
+
+  const playbook = buildPlaybook(account)
+  const tier = classify(account)
+
+  const bucketStyle = (bucket: string) => ({
+    bg: bucket === 'active' ? T.G50 : bucket === 'inactive' ? T.Y50 : T.R50,
+    fg: bucket === 'active' ? T.G400 : bucket === 'inactive' ? T.Y400 : T.R400,
+    bd: bucket === 'active' ? T.G75 : bucket === 'inactive' ? '#fed7aa' : T.R75,
+    label: bucket === 'active' ? 'Active' : bucket === 'inactive' ? 'At risk' : 'Churned',
+  })
 
   return (
-    <div>
-      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:18}}>
-        <button onClick={onBack} style={{background:T.N100,border:`1px solid ${T.N200}`,borderRadius:8,padding:'6px 14px',fontSize:12,fontWeight:500,color:T.N600,cursor:'pointer'}}>← All accounts</button>
-        <div style={{flex:1}}>
-          <div style={{fontSize:20,fontWeight:700,color:T.DB500}}>{account.domain}</div>
-          <div style={{fontSize:11,color:T.N400}}>{account.totalUsers} users · Added {account.addedAt}</div>
+    <div style={{ fontFamily: FONT, background: '#f6fbff', minHeight: '100vh' }}>
+
+      {/* Top nav */}
+      <header style={{ height: 56, background: '#fff', borderBottom: '1px solid #efefef', boxShadow: '8px 2px 16px rgba(1,87,152,0.10)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: 16, position: 'sticky', top: 0, zIndex: 50 }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.N500, display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, fontFamily: FONT, padding: '6px 8px', borderRadius: 8 }}>
+          <ArrowLeftIcon size={14}/> Back
+        </button>
+        <div style={{ width: 1, height: 20, background: T.N200, flexShrink: 0 }}/>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <DomainAvatar domain={account.domain} size={30} tier={tier}/>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#1e1c18', letterSpacing: '-0.01em', lineHeight: 1.2 }}>{account.domain}</div>
+            <div style={{ fontSize: 11, color: '#6a6e71', fontWeight: 500 }}>{account.totalUsers} users · Added {account.addedAt}</div>
+          </div>
         </div>
-        <Chip type={account.inactiveUsers>0?'danger':'green'} label={`${account.inactiveUsers} churned`}/>
-      </div>
-      <div style={{background:T.DB500,borderRadius:12,padding:'16px 20px',marginBottom:12}}>
-        <div style={{fontSize:10,fontWeight:600,color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:10}}>Account overview</div>
-        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          {[{l:'Total users',v:account.totalUsers,a:T.N0},{l:'Active',v:account.activeUsers,a:account.activeUsers>0?T.G75:T.R75},{l:'Churned',v:account.inactiveUsers,a:account.inactiveUsers>0?T.R75:T.N0},{l:'Total events',v:account.totalEvents,a:T.N0},{l:'Last seen',v:`${account.daysSince}d ago`,a:account.daysSince>=3?T.Y300:T.G75},{l:'Modules',v:account.modulesCount,a:T.B75}].map((m,i)=>(
-            <div key={i} style={{background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.08)',borderRadius:9,padding:'10px 13px',flex:1,minWidth:80}}>
-              <div style={{fontSize:9,color:'rgba(255,255,255,0.4)',marginBottom:4,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.05em'}}>{m.l}</div>
-              <div style={{fontSize:20,fontWeight:700,color:m.a,lineHeight:1}}>{m.v}</div>
+        <div style={{ flex: 1 }}/>
+        <StatusPill tier={tier}/>
+      </header>
+
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 28px 64px' }}>
+
+        {/* KPI strip */}
+        <div style={{ background: T.DB500, borderRadius: 14, padding: '16px 20px', marginBottom: 20, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {[
+            { l: 'Total users', v: account.totalUsers, a: T.N0 },
+            { l: 'Active', v: activeUsers.length, a: activeUsers.length > 0 ? T.G75 : T.N0 },
+            { l: 'At risk', v: inactiveUsers.length, a: inactiveUsers.length > 0 ? T.Y300 : T.N0 },
+            { l: 'Churned', v: churnedUsers.length, a: churnedUsers.length > 0 ? T.R75 : T.N0 },
+            { l: 'Total events', v: (account.totalEvents || 0).toLocaleString(), a: T.N0 },
+            { l: 'Last seen', v: account.daysSince === 0 ? 'Today' : `${account.daysSince}d ago`, a: account.daysSince > 7 ? T.Y300 : T.G75 },
+          ].map((m, i) => (
+            <div key={i} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px', flex: 1, minWidth: 80 }}>
+              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.45)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{m.l}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: m.a, lineHeight: 1 }}>{m.v}</div>
             </div>
           ))}
         </div>
-      </div>
-      <div style={{display:'flex',gap:0,marginBottom:12,background:T.N200,borderRadius:10,padding:3}}>
-        {['account','users'].map(t=>(
-          <button key={t} onClick={()=>setTab(t)} style={{flex:1,padding:'7px',fontSize:12,cursor:'pointer',borderRadius:8,border:'none',background:tab===t?T.DB500:'transparent',color:tab===t?T.N0:T.N500,fontWeight:tab===t?600:500,transition:'all 0.15s'}}>
-            {t==='account'?'Account insights':'User breakdown'}
-          </button>
-        ))}
-      </div>
-      {tab==='account' && (
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-          <div style={card}>
-            <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:12}}>Top events · all users</div>
-            {topEvents.map((e:any,i:number)=><Bar key={i} label={e.n} count={e.c} max={topEvents[0]?.c||1}/>)}
-          </div>
-          <div style={card}>
-            <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:10}}>Modules tested</div>
-            <div style={{display:'flex',flexWrap:'wrap',gap:5,marginBottom:14}}>
-              {allModules.map((m,i)=>{
-                const count=account.users.filter((u:any)=>u.modules.includes(m)).length
-                return <span key={i} style={{background:T.P50,border:`1px solid ${T.P75}`,color:T.P400,fontSize:11,padding:'3px 9px',borderRadius:20}}>{m} <strong>·{count}</strong></span>
-              })}
-            </div>
-            <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:8}}>User activity</div>
-            {account.users.map((u:any,i:number)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',gap:10,marginBottom:7}}>
-                <div style={{width:28,height:28,borderRadius:'50%',background:T.DB50,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,color:T.DB400,flexShrink:0}}>{u.initials}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:2}}>
-                    <span style={{color:T.N700,fontWeight:500}}>{u.name}</span>
-                    <span style={{color:T.N500}}>{u.totalEvents} events</span>
-                  </div>
-                  <div style={{height:4,background:T.N100,borderRadius:2}}>
-                    <div style={{height:4,width:`${Math.round((u.totalEvents/Math.max(maxEv,1))*100)}%`,background:u.daysSince>=14?T.R300:u.daysSince>=3?T.Y300:T.G300,borderRadius:2}}/>
-                  </div>
-                </div>
-                <Chip type={u.daysSince>=14?'danger':u.daysSince>=3?'warn':'green'} label={u.daysSince>=14?'Churned':u.daysSince>=3?'Inactive':'Active'} small/>
-              </div>
-            ))}
-          </div>
-          <div style={{...card,gridColumn:'1/-1'}}>
-            <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:12}}>Account health</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-              {insights.slice(0,6).map((f,i)=>{
-                const fc:any={danger:{bg:T.R50,b:T.R75,fg:T.R400},warn:{bg:T.Y50,b:'#fed7aa',fg:T.Y400},info:{bg:T.B50,b:T.B75,fg:T.B400}}[f.sev as string]
-                return <div key={i} style={{background:fc.bg,border:`1px solid ${fc.b}`,borderRadius:8,padding:'10px 13px',fontSize:12,color:fc.fg,lineHeight:1.5}}><strong>{f.t}</strong><br/>{f.b}</div>
-              })}
-            </div>
-          </div>
+
+        {/* Tab bar */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 20, background: T.N100, borderRadius: 12, padding: 4, width: 'fit-content' }}>
+          {(['account', 'people', 'playbook'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{ padding: '8px 22px', fontSize: 13, cursor: 'pointer', borderRadius: 8, border: 'none', background: tab === t ? '#fff' : 'transparent', color: tab === t ? '#0f1f3d' : T.N500, fontWeight: tab === t ? 700 : 500, transition: 'all 0.15s', fontFamily: FONT, boxShadow: tab === t ? '0 1px 3px rgba(15,31,61,0.08)' : 'none', textTransform: 'capitalize' }}>
+              {t}
+            </button>
+          ))}
         </div>
-      )}
-      {tab==='users' && (
-        <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:12,alignItems:'start'}}>
-          <div style={{background:T.N0,border:`1px solid ${T.N200}`,borderRadius:12,overflow:'hidden'}}>
-            {account.users.map((u:any,i:number)=>(
-              <div key={i} onClick={()=>setSelectedUser(u)} style={{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',cursor:'pointer',background:selectedUser?.email===u.email?T.B50:T.N0,borderLeft:`3px solid ${selectedUser?.email===u.email?T.B300:'transparent'}`,borderBottom:`1px solid ${T.N100}`}}>
-                <div style={{width:34,height:34,borderRadius:'50%',background:T.DB50,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:T.DB400,flexShrink:0}}>{u.initials}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:12,fontWeight:600,color:T.DB500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{u.email}</div>
-                  <div style={{fontSize:10,color:T.N400}}>{u.totalEvents} events · {u.activeDays}d active</div>
+
+        {/* ── Account tab ── */}
+        {tab === 'account' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div style={{ background: '#fff', border: `1px solid ${T.N200}`, borderRadius: 12, padding: '16px 18px' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.N400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>Top events · all users</div>
+              {topEvents.length > 0
+                ? topEvents.map((e, i) => <Bar key={i} label={e.n} count={e.c} max={topEvents[0]?.c || 1}/>)
+                : <div style={{ fontSize: 12, color: T.N400 }}>No event data yet.</div>}
+            </div>
+            <div style={{ background: '#fff', border: `1px solid ${T.N200}`, borderRadius: 12, padding: '16px 18px' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.N400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>Top modules</div>
+              {topModules.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {topModules.map(([name, count], i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <ModuleChip name={name} count={count}/>
+                      <div style={{ flex: 1, height: 4, background: T.N100, borderRadius: 2 }}>
+                        <div style={{ height: 4, width: `${Math.round((count / (topModules[0]?.[1] || 1)) * 100)}%`, background: T.P400, borderRadius: 2 }}/>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <Chip type={u.daysSince>=14?'danger':u.daysSince>=3?'warn':'green'} label={u.daysSince>=14?'Churned':`${u.daysSince}d`} small/>
-              </div>
-            ))}
-          </div>
-          {selectedUser && (
-            <div style={card}>
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
-                <div style={{width:42,height:42,borderRadius:'50%',background:T.DB50,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:T.DB400}}>{selectedUser.initials}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:14,fontWeight:600,color:T.DB500}}>{selectedUser.email}</div>
-                  <div style={{fontSize:11,color:T.N400}}>First seen {selectedUser.firstSeen} · Last seen {selectedUser.lastSeen}</div>
-                </div>
-                <a href={ampUrl(selectedUser.amplitudeId)} target="_blank" rel="noreferrer" style={{fontSize:11,color:T.B400,fontWeight:600,textDecoration:'none',background:T.B50,border:`1px solid ${T.B75}`,padding:'5px 10px',borderRadius:6}}>Amplitude →</a>
-              </div>
-              <div style={{display:'flex',gap:8,marginBottom:14}}>
-                {[{l:'Events',v:selectedUser.totalEvents,c:selectedUser.totalEvents<15?T.Y400:T.G400},{l:'Active days',v:selectedUser.activeDays,c:T.DB500},{l:'Last seen',v:selectedUser.daysSince===0?'Today':`${selectedUser.daysSince}d ago`,c:selectedUser.daysSince>=14?T.R400:selectedUser.daysSince>=3?T.Y400:T.G400}].map((s,i)=>(
-                  <div key={i} style={{background:T.N50,border:`1px solid ${T.N200}`,borderRadius:9,padding:'10px 13px',flex:1}}>
-                    <div style={{fontSize:9,color:T.N400,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:4}}>{s.l}</div>
-                    <div style={{fontSize:18,fontWeight:700,color:s.c,lineHeight:1}}>{s.v}</div>
-                  </div>
-                ))}
-              </div>
-              {selectedUser.dailyActivity?.length > 0 && (
-                <div style={{marginBottom:14}}>
-                  <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:8}}>Daily activity · last 8 days</div>
-                  <MiniChart data={selectedUser.dailyActivity}/>
-                </div>
-              )}
-              <div style={{marginBottom:14}}>
-                <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:8}}>Modules tested</div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                  {selectedUser.modules.map((m:string,i:number)=><span key={i} style={{background:T.P50,border:`1px solid ${T.P75}`,color:T.P400,fontSize:11,padding:'3px 9px',borderRadius:20}}>{m}</span>)}
-                </div>
-              </div>
-              <div style={{marginBottom:14}}>
-                <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:8}}>Top events</div>
-                {selectedUser.topEvents.slice(0,8).map((e:any,i:number)=><Bar key={i} label={e.name} count={e.count} max={selectedUser.topEvents[0]?.count||1}/>)}
-              </div>
-              <div>
-                <div style={{fontSize:10,fontWeight:600,color:T.N400,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:8}}>Flags & insights</div>
-                {selectedUser.flags.map((f:any,i:number)=>{
-                  const fc:any={danger:{bg:T.R50,b:T.R75,fg:T.R400},warn:{bg:T.Y50,b:'#fed7aa',fg:T.Y400},info:{bg:T.B50,b:T.B75,fg:T.B400}}[f.sev as string]
-                  return <div key={i} style={{background:fc.bg,border:`1px solid ${fc.b}`,borderRadius:8,padding:'8px 12px',marginBottom:6,fontSize:12,color:fc.fg}}><strong>{f.t}</strong> — {f.b}</div>
+              ) : <div style={{ fontSize: 12, color: T.N400 }}>No module data yet.</div>}
+            </div>
+            <div style={{ background: '#fff', border: `1px solid ${T.N200}`, borderRadius: 12, padding: '16px 18px', gridColumn: '1/-1' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.N400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>User activity</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {users.map((u: any, i: number) => {
+                  const maxEv = Math.max(...users.map((x: any) => x.totalEvents || 0), 1)
+                  const bs = bucketStyle(u.bucket)
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 10, background: T.N50, border: `1px solid ${T.N100}` }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: T.DB50, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: T.DB400, flexShrink: 0 }}>{u.initials}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: T.DB500 }}>{u.name || u.email}</span>
+                          <span style={{ fontSize: 11, color: T.N500 }}>{u.totalEvents} events · {u.activeDays}d active</span>
+                        </div>
+                        <div style={{ height: 4, background: T.N200, borderRadius: 2 }}>
+                          <div style={{ height: 4, width: `${Math.round(((u.totalEvents || 0) / maxEv) * 100)}%`, background: bs.fg, borderRadius: 2 }}/>
+                        </div>
+                      </div>
+                      <span style={{ background: bs.bg, color: bs.fg, border: `1px solid ${bs.bd}`, fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20, whiteSpace: 'nowrap' }}>{bs.label}</span>
+                    </div>
+                  )
                 })}
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+
+        {/* ── People tab ── */}
+        {tab === 'people' && (
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 14, alignItems: 'start' }}>
+            <div style={{ background: '#fff', border: `1px solid ${T.N200}`, borderRadius: 12, overflow: 'hidden' }}>
+              {users.map((u: any, i: number) => {
+                const bs = bucketStyle(u.bucket)
+                return (
+                  <div key={i} onClick={() => setSelectedUser(u)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', cursor: 'pointer', background: selectedUser?.email === u.email ? T.B50 : '#fff', borderLeft: `3px solid ${selectedUser?.email === u.email ? T.B300 : 'transparent'}`, borderBottom: `1px solid ${T.N100}`, transition: 'background 120ms' }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: T.DB50, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: T.DB400, flexShrink: 0 }}>{u.initials}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: T.DB500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name || u.email}</div>
+                      <div style={{ fontSize: 10, color: T.N400 }}>{u.totalEvents} events · {u.activeDays}d active</div>
+                    </div>
+                    <span style={{ background: bs.bg, color: bs.fg, border: `1px solid ${bs.bd}`, fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 20, whiteSpace: 'nowrap' }}>{bs.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+            {selectedUser && (() => {
+              const u = users.find((x: any) => x.email === selectedUser.email) || selectedUser
+              const bs = bucketStyle(u.bucket)
+              return (
+                <div style={{ background: '#fff', border: `1px solid ${T.N200}`, borderRadius: 12, padding: '16px 18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: T.DB50, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: T.DB400 }}>{u.initials}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: T.DB500 }}>{u.name || u.email}</div>
+                      <div style={{ fontSize: 11, color: T.N400 }}>{u.email}</div>
+                      <div style={{ fontSize: 10, color: T.N400, marginTop: 2 }}>First seen {u.firstSeen} · Last seen {u.lastSeen}</div>
+                    </div>
+                    <a href={ampUrl(u.amplitudeId)} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: T.B400, fontWeight: 600, textDecoration: 'none', background: T.B50, border: `1px solid ${T.B75}`, padding: '6px 12px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      Open in Amplitude <ExternalLinkIcon size={11}/>
+                    </a>
+                  </div>
+                  {u.recommendedAction && (
+                    <div style={{ background: bs.bg, border: `1px solid ${bs.bd}`, borderRadius: 8, padding: '10px 14px', marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <AIRASparkle size={13}/>
+                      <div style={{ fontSize: 12, color: bs.fg, fontWeight: 500, lineHeight: 1.4 }}>{u.recommendedAction}</div>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                    {[
+                      { l: 'Events', v: u.totalEvents, c: u.totalEvents < 15 ? T.Y400 : T.G400 },
+                      { l: 'Active days', v: u.activeDays, c: T.DB500 },
+                      { l: 'Last seen', v: u.daysSince === 0 ? 'Today' : `${u.daysSince}d ago`, c: u.daysSince >= 14 ? T.R400 : u.daysSince >= 3 ? T.Y400 : T.G400 },
+                    ].map((s, i) => (
+                      <div key={i} style={{ background: T.N50, border: `1px solid ${T.N200}`, borderRadius: 9, padding: '10px 13px', flex: 1 }}>
+                        <div style={{ fontSize: 9, color: T.N400, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{s.l}</div>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: s.c, lineHeight: 1 }}>{s.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {u.dailyActivity?.length > 0 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: T.N400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Daily activity · last 8 days</div>
+                      <MiniChart data={u.dailyActivity}/>
+                    </div>
+                  )}
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: T.N400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Modules tested</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {u.modules?.map((m: string, i: number) => <ModuleChip key={i} name={m}/>)}
+                      {(!u.modules || u.modules.length === 0) && <span style={{ fontSize: 12, color: T.N400 }}>No modules recorded</span>}
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: u.flags?.length > 0 ? 14 : 0 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: T.N400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Top events</div>
+                    {u.topEvents?.slice(0, 8).map((e: any, i: number) => <Bar key={i} label={e.name} count={e.count} max={u.topEvents[0]?.count || 1}/>)}
+                  </div>
+                  {u.flags?.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: T.N400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Flags & insights</div>
+                      {u.flags.map((f: any, i: number) => {
+                        const fc: any = { danger: { bg: T.R50, b: T.R75, fg: T.R400 }, warn: { bg: T.Y50, b: '#fed7aa', fg: T.Y400 }, info: { bg: T.B50, b: T.B75, fg: T.B400 } }[f.sev as string] || { bg: T.N50, b: T.N200, fg: T.N600 }
+                        return <div key={i} style={{ background: fc.bg, border: `1px solid ${fc.b}`, borderRadius: 8, padding: '8px 12px', marginBottom: 6, fontSize: 12, color: fc.fg }}><strong>{f.t}</strong> — {f.b}</div>
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+          </div>
+        )}
+
+        {/* ── Playbook tab ── */}
+        {tab === 'playbook' && (
+          <div>
+            <div style={{ background: 'linear-gradient(115.83deg, #e3f0ff 1.33%, #fdf4f1 51.21%, #f8eff1 101.09%)', border: '1px solid #dfe7f5', borderRadius: 14, padding: '18px 20px', marginBottom: 18, display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+              <AIRASparkle size={16}/>
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase', background: 'linear-gradient(115.67deg, #4aa1ff 15.76%, #6455ff 118.86%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent', marginBottom: 6 }}>Aira synthesis</div>
+                <div style={{ fontSize: 14, color: '#33393d', lineHeight: 1.55, fontWeight: 500 }}>{playbook.story}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {playbook.actions.map((action, i) => {
+                const pColor = action.priority === 'high' ? '#c81e1e' : action.priority === 'medium' ? '#a05c00' : '#1a9e68'
+                const pBg    = action.priority === 'high' ? T.R50    : action.priority === 'medium' ? T.Y50    : T.G50
+                const pBd    = action.priority === 'high' ? T.R75    : action.priority === 'medium' ? '#fed7aa' : T.G75
+                return (
+                  <div key={i} style={{ background: '#fff', border: `1px solid ${T.N200}`, borderRadius: 12, padding: '16px 18px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: pBg, border: `1px solid ${pBd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: pColor, flexShrink: 0 }}>
+                      {action.icon}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: '#1e1c18' }}>{action.title}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, background: pBg, color: pColor, border: `1px solid ${pBd}`, padding: '2px 8px', borderRadius: 20 }}>{action.priority} priority</span>
+                      </div>
+                      <p style={{ margin: '0 0 10px', fontSize: 13, color: '#6a6e71', lineHeight: 1.5 }}>{action.body}</p>
+                      {action.targets.length > 0 && (
+                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
+                          {action.targets.map((t, j) => (
+                            <span key={j} style={{ fontSize: 11, color: T.N600, background: T.N100, border: `1px solid ${T.N200}`, padding: '2px 8px', borderRadius: 20 }}>{t}</span>
+                          ))}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => {
+                          // TODO: wire up CTA action once backend endpoint is available
+                          console.log('Playbook CTA clicked:', action.title, action.targets)
+                        }}
+                        style={{ background: '#0f1f3d', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT }}
+                      >
+                        <ListCheckIcon size={11}/>{action.cta}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+              {playbook.actions.length === 0 && (
+                <div style={{ background: '#fff', border: '1px dashed #dfe0e0', borderRadius: 12, padding: '48px 24px', textAlign: 'center' }}>
+                  <CheckCircleIcon size={28} style={{ color: '#1a9e68', display: 'block', margin: '0 auto 10px' }}/>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1e1c18' }}>All good here</div>
+                  <div style={{ fontSize: 12, color: '#6a6e71', marginTop: 4 }}>No immediate actions needed. Keep monitoring.</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -1006,12 +1199,8 @@ export default function Dashboard({ session }: any) {
     ? profile.full_name.split(' ').map((s: string) => s[0]).join('').slice(0, 2).toUpperCase()
     : (session.user.email || '').slice(0, 2).toUpperCase()
 
-  // ── Detail view — UNCHANGED ──────────────────────────────────────
-  if (selected) return (
-    <div style={{maxWidth:960,margin:'0 auto',padding:'1.5rem 1rem 3rem',fontFamily:'Inter, system-ui, sans-serif',background:'#f9fafb',minHeight:'100vh'}}>
-      <AccountDetail account={selected} onBack={() => setSelected(null)} />
-    </div>
-  )
+  // ── Detail view ──────────────────────────────────────────────────
+  if (selected) return <AccountDetail account={selected} onBack={() => setSelected(null)} />
 
   // ── New list view ────────────────────────────────────────────────
   const ghostBtnStyle: React.CSSProperties = {
