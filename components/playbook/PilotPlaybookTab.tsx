@@ -24,6 +24,8 @@ interface Props {
   customerName: string | null
   userId: string
   presentMode?: boolean
+  /** Called once after playbook data has loaded and been committed to the DOM. */
+  onReady?: () => void
 }
 
 export default function PilotPlaybookTab({
@@ -31,6 +33,7 @@ export default function PilotPlaybookTab({
   customerName,
   userId,
   presentMode = false,
+  onReady,
 }: Props) {
   const router = useRouter()
   const [playbook, setPlaybook] = useState<Playbook | null>(null)
@@ -63,6 +66,11 @@ export default function PilotPlaybookTab({
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [presentMode, domain, router])
+
+  // Notify parent when playbook data is loaded and rendered
+  useEffect(() => {
+    if (!loading && playbook) onReady?.()
+  }, [loading, playbook, onReady])
 
   // ─── Attention dot logic ──────────────────────────────────────────
   const hasAttention = sections.some(s => {
@@ -155,10 +163,16 @@ export default function PilotPlaybookTab({
   }
 
   function handleExportPDF() {
-    const date = new Date().toISOString().slice(0, 10)
-    document.title = `${domain}-pilot-playbook-${date}`
-    window.print()
-    setTimeout(() => { document.title = 'RF Pilot Tracker' }, 1000)
+    if (presentMode) {
+      // Already on the present-mode page — print directly
+      const date = new Date().toISOString().slice(0, 10)
+      document.title = `${domain}-pilot-playbook-${date}`
+      window.print()
+      setTimeout(() => { document.title = 'RF Pilot Tracker' }, 1000)
+    } else {
+      // Navigate to present mode with ?print=1; that page auto-triggers window.print()
+      router.push(`/accounts/${domain}/playbook/present?print=1`)
+    }
   }
 
   // ─── Loading ──────────────────────────────────────────────────────
@@ -219,8 +233,8 @@ export default function PilotPlaybookTab({
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
+          {/* Action buttons — hidden in print */}
+          <div className="no-print" style={{ display: 'flex', gap: 8, flexShrink: 0, alignItems: 'center' }}>
             <button
               onClick={handleExportPDF}
               style={ghostBtn}
@@ -272,7 +286,7 @@ export default function PilotPlaybookTab({
           if (kind === 'success_criteria') {
             // Render all success_criteria sections together under one header
             return (
-              <div key={kind} style={{ marginBottom: 32 }}>
+              <div key={kind} data-playbook-section={kind} style={{ marginBottom: 32 }}>
                 <SectionHeader kind={kind} />
                 {kindsForThisGroup.map(section => (
                   <PlaybookSection
@@ -330,7 +344,7 @@ export default function PilotPlaybookTab({
           }
 
           return (
-            <div key={kind} style={{ marginBottom: 32 }}>
+            <div key={kind} data-playbook-section={kind} style={{ marginBottom: 32 }}>
               <SectionHeader kind={kind} />
               {kindsForThisGroup.map(section => (
                 <PlaybookSection

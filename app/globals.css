@@ -27,39 +27,102 @@ body {
 
 /* ─── Print / PDF export ─────────────────────────────────────────────────── */
 @media print {
-  /* Hide everything that isn't the playbook content */
-  header, nav, [data-no-print], .no-print {
-    display: none !important;
+  /* ── Page setup ── */
+  @page {
+    size: A4;
+    margin: 1.4cm 1.8cm;
   }
 
-  body {
+  /* ── CRITICAL: Override Tailwind's flex flex-col on <body>
+        Browsers cannot paginate a flex container — this is the #1 blank-page cause ── */
+  html, body {
+    display: block !important;
+    height: auto !important;
+    min-height: unset !important;
+    overflow: visible !important;
     background: #fff !important;
     font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
-  /* Page setup */
-  @page {
-    margin: 1.4cm 1.8cm;
+  /* ── Only hide the UI chrome that should never appear in print ── */
+  .no-print {
+    display: none !important;
   }
 
-  /* PDF header printed via CSS counters */
+  /* ── Preserve colours (badges, section headers, status pills) ── */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* ── Drop box-shadows — they print as grey smudges ── */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* ── Unlock any height/overflow constraints on layout wrappers ── */
+  #__next, main {
+    display: block !important;
+    height: auto !important;
+    min-height: unset !important;
+    overflow: visible !important;
+    max-width: 100% !important;
+    padding-bottom: 24pt !important;
+  }
+
+  /* ── Unstick any sticky-positioned chrome ── */
+  [style*="position:sticky"], [style*="position: sticky"] {
+    position: static !important;
+  }
+
+  /* ── Print header (present-mode root element) ── */
   #playbook-print-content::before {
-    content: attr(data-print-title) " — Pilot Playbook — As of " attr(data-print-date);
+    content: attr(data-print-title) " — Pilot Playbook — " attr(data-print-date);
     display: block;
     font-size: 11pt;
     font-weight: 700;
     color: #0f1f3d;
-    margin-bottom: 18pt;
+    margin-bottom: 16pt;
     padding-bottom: 8pt;
     border-bottom: 1.5pt solid #e5e7eb;
   }
 
-  /* Page numbers in footer */
-  @page {
-    @bottom-right {
-      content: "Page " counter(page) " of " counter(pages);
-      font-size: 9pt;
-      color: #9ca3af;
-    }
+  /* ── Ensure playbook content is explicitly visible ── */
+  #playbook-print-content {
+    display: block !important;
+  }
+
+  /* ── Page-break rules ── */
+
+  /* Each top-level section stays together */
+  [data-playbook-section] {
+    display: block !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Allow a natural break between sections */
+  [data-playbook-section] + [data-playbook-section] {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  /* Never split a single item row across pages */
+  [data-playbook-item] {
+    display: block !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Section kind headers stay with their content */
+  [data-playbook-section] > div:first-child {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Section sub-headers (h3) stay pinned to their first item */
+  #playbook-print-content h3 {
+    break-after: avoid;
+    page-break-after: avoid;
   }
 }
